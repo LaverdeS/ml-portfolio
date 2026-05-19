@@ -10,7 +10,7 @@ import Contact from '@/components/sections/Contact'
 
 export default function Home() {
   return (
-    <main className="min-h-screen relative overflow-x-hidden md:pl-20">
+    <main className="min-h-screen relative overflow-x-hidden md:pl-32 lg:pl-48">
       <Nav />
       <Hero />
       <Metrics />

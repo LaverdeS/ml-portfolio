@@ -59,9 +59,9 @@ export default function Nav() {
       </header>
 
       {/* Fixed Sidebar Navigation (Desktop only, left side) */}
-      <nav className="fixed left-6 lg:left-10 top-1/2 -translate-y-1/2 z-50 hidden md:flex flex-col items-center gap-6 select-none">
+      <nav className="fixed left-6 lg:left-10 top-1/2 -translate-y-1/2 z-50 hidden md:flex flex-col items-start gap-4 select-none">
         {/* Decorative top line segment */}
-        <div className="w-px h-16 bg-border/40 mb-2" />
+        <div className="w-px h-16 bg-border/40 mb-2 ml-[3px]" />
 
         {sections.map(sec => {
           const isActive = activeSection === sec.id
@@ -69,20 +69,20 @@ export default function Nav() {
             <a
               key={sec.id}
               href={`#${sec.id}`}
-              className="group flex flex-col items-center gap-2 py-1.5 transition-all duration-300"
+              className="group flex items-center gap-4 py-1.5 transition-all duration-300"
             >
               {/* Dot */}
               <div
-                className={`w-1.5 h-1.5 rounded-full border transition-all duration-300 ${
+                className={`w-1.5 h-1.5 rounded-full border transition-all duration-300 shrink-0 ${
                   isActive
                     ? 'bg-accent border-accent scale-125 shadow-[0_0_8px_rgba(0,212,255,0.7)]'
                     : 'bg-transparent border-border/80 group-hover:border-accent'
                 }`}
               />
               
-              {/* Sideways Text Label */}
+              {/* Horizontal Text Label */}
               <span
-                className={`font-mono text-[9px] tracking-[0.2em] uppercase transition-all duration-300 [writing-mode:vertical-rl] rotate-180 whitespace-nowrap ${
+                className={`font-mono text-[10px] tracking-widest uppercase transition-all duration-300 ${
                   isActive
                     ? 'text-accent font-medium'
                     : 'text-muted/50 group-hover:text-text'
@@ -95,7 +95,7 @@ export default function Nav() {
         })}
 
         {/* Decorative bottom line segment */}
-        <div className="w-px h-16 bg-border/40 mt-2" />
+        <div className="w-px h-16 bg-border/40 mt-2 ml-[3px]" />
       </nav>
     </>
   )
