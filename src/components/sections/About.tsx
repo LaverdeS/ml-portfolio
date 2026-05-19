@@ -1,7 +1,16 @@
 'use client'
 import { motion } from 'framer-motion'
-import { about } from '@/data/portfolio'
 import SectionLabel from '../ui/SectionLabel'
+
+const about = {
+  paragraphs: [
+    "I am a Machine Learning Engineer with 7+ years of experience across the full AI lifecycle — from research and fine-tuning to production deployment, observability, and scale.",
+    "I specialize in building deep learning systems for document intelligence, NLP, and multimodal AI, with a core focus on agentic architectures and LLM infrastructure.",
+    "Most recently at Sapience AI, I served as the sole architect and technical owner of their complete multi-agent SaaS platform. I designed and deployed four production agents, an Agent-to-Agent (A2A) orchestration protocol, a hybrid RAG retrieval pipeline, and full GCP serverless infrastructure.",
+    "My passion lies in translating complex research and business objectives into highly observable, type-safe, and scalable systems."
+  ],
+  focus: ['Agentic AI', 'RAG', 'DocIntel', 'Infrastructure']
+}
 
 export default function About() {
   return (
