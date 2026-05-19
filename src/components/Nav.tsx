@@ -82,7 +82,7 @@ export default function Nav() {
               
               {/* Sideways Text Label */}
               <span
-                className={`font-mono text-[9px] tracking-[0.2em] uppercase transition-all duration-300 [writing-mode:vertical-rl] rotate-180 ${
+                className={`font-mono text-[9px] tracking-[0.2em] uppercase transition-all duration-300 [writing-mode:vertical-rl] rotate-180 whitespace-nowrap ${
                   isActive
                     ? 'text-accent font-medium'
                     : 'text-muted/50 group-hover:text-text'
