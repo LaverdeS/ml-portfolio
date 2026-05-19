@@ -62,7 +62,7 @@ export default function Nav() {
       </header>
 
       {/* Desktop Solid Sidebar */}
-      <aside className="hidden md:flex w-64 lg:w-[280px] fixed inset-y-0 left-0 bg-surface border-r border-border/40 z-50 flex-col justify-between py-12 px-8 shadow-2xl">
+      <aside className="hidden md:flex w-64 lg:w-[280px] shrink-0 sticky top-0 h-screen bg-surface border-r border-border/40 z-50 flex-col justify-between py-12 px-8 shadow-2xl">
         {/* Logo area */}
         <div className="select-none">
           <a href="#hero" className="inline-block font-display text-4xl font-bold tracking-tight text-text hover:text-accent transition-colors duration-300">

@@ -15,10 +15,10 @@ export default function Projects() {
   }
 
   return (
-    <section id="projects" className="max-w-6xl mx-auto px-6 py-24 scroll-mt-12">
+    <section id="projects" className="max-w-6xl mx-auto px-8 md:px-16 lg:px-24 py-32 scroll-mt-12">
       <SectionLabel number="03" label="projects" />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="mt-16 grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-16">
         {projects.map((proj, index) => (
           <motion.div
             key={proj.id}

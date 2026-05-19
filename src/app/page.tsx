@@ -13,12 +13,10 @@ export default function Home() {
     <div className="flex min-h-screen bg-bg">
       <Nav />
       {/* 
-        The mobile Nav is 14 units high, so pt-14 pushes content down on mobile.
-        On desktop (md), the sidebar is fixed, so we use ml-64/lg:ml-[280px] to push the main content right.
+        The sidebar is now a sticky element in the flex layout, pushing main naturally.
       */}
-      <main className="flex-1 w-full relative overflow-x-hidden pt-14 md:pt-0 md:ml-64 lg:ml-[280px]">
+      <main className="flex-1 min-w-0 relative overflow-x-hidden pt-14 md:pt-0">
         <Hero />
-      <Metrics />
       <About />
       <Experience />
       <Projects />

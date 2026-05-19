@@ -1,127 +1,69 @@
 'use client'
-import { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { experience } from '@/data/portfolio'
 import SectionLabel from '../ui/SectionLabel'
 import Tag from '../ui/Tag'
-import { Calendar, MapPin, ChevronDown, ChevronUp } from 'lucide-react'
 
 export default function Experience() {
-  const [expandedIds, setExpandedIds] = useState<Record<string, boolean>>({
-    sapience: true, // Sapience AI open by default for maximum impact
-  })
-
-  const toggleExpand = (id: string) => {
-    setExpandedIds(prev => ({ ...prev, [id]: !prev[id] }))
-  }
-
   return (
-    <section id="experience" className="max-w-6xl mx-auto px-6 py-24 scroll-mt-12">
+    <section id="experience" className="max-w-6xl mx-auto px-8 md:px-16 lg:px-24 py-32 scroll-mt-12">
       <SectionLabel number="02" label="experience" />
 
-      <div className="relative pl-6 md:pl-10 border-l border-border/80 space-y-12">
+      <div className="mt-20 space-y-32">
         {experience.map((exp, index) => {
           const isSapience = exp.id === 'sapience'
-          const isExpanded = !!expandedIds[exp.id]
 
           return (
             <motion.div
               key={exp.id}
-              initial={{ opacity: 0, y: 24 }}
+              initial={{ opacity: 0, y: 50 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: '-80px' }}
-              transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1], delay: index * 0.08 }}
-              className={`relative p-6 border rounded-sm transition-all duration-300 ${
-                isSapience
-                  ? 'bg-surface border-accent/40 shadow-[0_0_30px_rgba(0,212,255,0.04)]'
-                  : 'bg-transparent border-border/60 hover:border-border-muted hover:bg-surface/10'
-              }`}
+              viewport={{ once: true, margin: '-100px' }}
+              transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+              className="group relative"
             >
-              {/* Timeline marker node */}
-              <div
-                className={`absolute -left-[31px] md:-left-[47px] top-7 w-3 h-3 rounded-full border-2 transition-all duration-300 ${
-                  isSapience
-                    ? 'bg-accent border-bg shadow-[0_0_10px_rgba(0,212,255,0.8)] scale-125'
-                    : 'bg-bg border-border group-hover:border-accent'
-                }`}
-              />
-
-              {/* Header row */}
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-3">
-                <div className="flex flex-wrap items-center gap-3">
-                  <h3 className="font-display text-lg md:text-xl font-bold text-text">
+              {/* Header */}
+              <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-10 border-b border-border/30 pb-8">
+                <div>
+                  <h3 className="font-display text-4xl md:text-5xl font-bold text-text group-hover:text-accent transition-colors duration-500 tracking-tight">
                     {exp.company}
                   </h3>
-                  <span className="text-[10px] font-mono tracking-widest uppercase border border-border/80 px-2 py-0.5 text-muted/80 bg-surface/80 rounded-sm">
-                    {exp.type}
-                  </span>
+                  <div className="font-mono text-sm md:text-base tracking-wide text-accent mt-4">
+                    {exp.role}
+                  </div>
                 </div>
-                <div className="flex items-center gap-4 text-muted text-xs font-mono">
-                  <span className="flex items-center gap-1.5">
-                    <Calendar size={12} className="text-muted/60" />
-                    {exp.period}
-                  </span>
-                  <span className="hidden md:flex items-center gap-1.5">
-                    <MapPin size={12} className="text-muted/60" />
-                    {exp.location}
-                  </span>
+                <div className="text-left lg:text-right font-mono text-[11px] text-muted/80 uppercase tracking-widest">
+                  <div className="text-text/80 font-medium mb-1">{exp.period}</div>
+                  <div>{exp.location}</div>
                 </div>
               </div>
 
-              {/* Role Title */}
-              <div className="text-accent text-sm font-mono font-medium tracking-wide mb-4">
-                {exp.role}
-              </div>
+              {/* Content Grid */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-20">
+                {/* Main Bullets */}
+                <div className="lg:col-span-8">
+                  <p className="text-xl md:text-2xl text-text/90 font-light mb-10 leading-relaxed font-sans">
+                    {exp.headline}
+                  </p>
+                  <ul className="space-y-6">
+                    {exp.bullets.map((bullet, bIdx) => (
+                      <li key={bIdx} className="flex items-start gap-5 text-muted">
+                        <div className={`mt-2.5 w-1.5 h-1.5 rounded-full shrink-0 ${isSapience ? 'bg-accent' : 'bg-border/80 group-hover:bg-accent/50'} transition-colors duration-500`} />
+                        <span className="leading-relaxed text-base md:text-lg font-light">{bullet}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
 
-              {/* Tech Stack Tags */}
-              <div className="flex flex-wrap gap-2 mb-4">
-                {exp.tags.map(tag => (
-                  <Tag key={tag} label={tag} variant={isSapience ? 'accent' : 'default'} />
-                ))}
-              </div>
-
-              {/* Headline summary sentence */}
-              <div className="text-text/90 font-sans text-sm md:text-base leading-relaxed mb-4 font-medium border-l border-border/80 pl-3 py-0.5">
-                {exp.headline}
-              </div>
-
-              {/* Expandable details */}
-              <div>
-                <button
-                  onClick={() => toggleExpand(exp.id)}
-                  className="flex items-center gap-1.5 font-mono text-[11px] tracking-wider text-muted hover:text-accent uppercase transition-colors duration-200 select-none pb-2"
-                >
-                  {isExpanded ? (
-                    <>
-                      <ChevronUp size={14} /> Hide details
-                    </>
-                  ) : (
-                    <>
-                      <ChevronDown size={14} /> Show details
-                    </>
-                  )}
-                </button>
-
-                <AnimatePresence initial={false}>
-                  {isExpanded && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-                      className="overflow-hidden"
-                    >
-                      <ul className="list-none space-y-3 pl-3 pt-2 border-t border-border/20 font-sans text-xs md:text-sm text-muted leading-relaxed">
-                        {exp.bullets.map((bullet, bIdx) => (
-                          <li key={bIdx} className="flex items-start gap-2.5">
-                            <span className="w-1.5 h-[1px] bg-accent/60 mt-2.5 shrink-0" />
-                            <span>{bullet}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                {/* Tags Sidebar */}
+                <div className="lg:col-span-4 lg:pl-10 lg:border-l border-border/30 pt-4 lg:pt-0">
+                  <h4 className="font-mono text-[10px] tracking-widest text-muted uppercase mb-6">Technologies</h4>
+                  <div className="flex flex-wrap gap-2.5">
+                    {exp.tags.map(tag => (
+                      <Tag key={tag} label={tag} variant={isSapience ? 'accent' : 'default'} />
+                    ))}
+                  </div>
+                </div>
               </div>
             </motion.div>
           )
