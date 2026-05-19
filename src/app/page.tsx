@@ -10,9 +10,14 @@ import Contact from '@/components/sections/Contact'
 
 export default function Home() {
   return (
-    <main className="min-h-screen relative overflow-x-hidden md:pl-32 lg:pl-48">
+    <div className="flex min-h-screen bg-bg">
       <Nav />
-      <Hero />
+      {/* 
+        The mobile Nav is 14 units high, so pt-14 pushes content down on mobile.
+        On desktop (md), the sidebar is fixed, so we use ml-64/lg:ml-[280px] to push the main content right.
+      */}
+      <main className="flex-1 w-full relative overflow-x-hidden pt-14 md:pt-0 md:ml-64 lg:ml-[280px]">
+        <Hero />
       <Metrics />
       <About />
       <Experience />
@@ -20,6 +25,7 @@ export default function Home() {
       <Skills />
       <Publications />
       <Contact />
-    </main>
+      </main>
+    </div>
   )
 }
