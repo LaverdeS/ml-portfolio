@@ -2,8 +2,9 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Sebastian Laverde — ML Engineer | Agentic AI · LLM Infrastructure',
-  description: 'ML Engineer with 7+ years building production AI systems. Expert in Agentic AI architectures, LLM infrastructure, RAG pipelines, and document intelligence. Available for Senior ML roles.',
+  title: 'Sebastian Laverde - ML Engineer | Agentic AI + LLM Infrastructure',
+  description:
+    'ML Engineer with 7+ years building production AI systems. Expert in Agentic AI architectures, LLM infrastructure, RAG pipelines, and document intelligence. Available for Senior ML roles.',
   keywords: [
     'ML Engineer',
     'Machine Learning',
@@ -15,12 +16,12 @@ export const metadata: Metadata = {
     'Leipzig',
     'Document Intelligence',
     'Computer Vision',
-    'NLP'
+    'NLP',
   ],
   authors: [{ name: 'Sebastian Laverde Alfonso' }],
   openGraph: {
-    title: 'Sebastian Laverde — ML Engineer',
-    description: 'Agentic AI · LLM Infrastructure · Document Intelligence',
+    title: 'Sebastian Laverde - ML Engineer',
+    description: 'Agentic AI + LLM Infrastructure + Document Intelligence',
     type: 'website',
     locale: 'en_US',
   },

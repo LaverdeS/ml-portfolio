@@ -10,7 +10,7 @@ export default function Experience() {
       <SectionLabel number="02" label="experience" />
 
       <div className="mt-20 space-y-32">
-        {experience.map((exp, index) => {
+        {experience.map((exp) => {
           const isSapience = exp.id === 'sapience'
 
           return (

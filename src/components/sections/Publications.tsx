@@ -11,7 +11,6 @@ export default function Publications() {
 
       <div className="space-y-8">
         {publications.map((pub, index) => {
-          const isPaper = pub.venue.includes('arXiv')
           return (
             <motion.div
               key={pub.title}

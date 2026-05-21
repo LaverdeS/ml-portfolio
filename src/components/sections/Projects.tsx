@@ -64,7 +64,7 @@ export default function Projects() {
 
               {/* Outcome line */}
               <div className="font-mono text-[10px] md:text-xs text-metric font-medium tracking-wide flex items-start gap-1 select-none">
-                <span className="text-metric/70">→</span>
+                <span className="text-metric/70">-&gt;</span>
                 <span>{proj.outcome}</span>
               </div>
             </div>
