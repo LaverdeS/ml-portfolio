@@ -60,6 +60,7 @@ body {
   background: var(--bg);
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
   min-width: 320px;
+  overflow-x: hidden;
 }
 
 ::selection {
@@ -110,6 +111,82 @@ textarea:focus-visible {
   animation: orbitSpin 46s linear infinite reverse;
 }
 
+.home-orbit-stage {
+  --home-node-radius: clamp(14rem, 30vmin, 24rem);
+  --home-orbit-size: clamp(30rem, 68vmin, 54rem);
+}
+
+.radial-node {
+  animation: radialNodeIn 440ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: var(--node-delay, 0s);
+  left: 50%;
+  opacity: 0;
+  position: absolute;
+  top: 50%;
+  transform:
+    translate(-50%, -50%)
+    rotate(var(--node-angle))
+    translateY(calc(-1 * var(--home-node-radius)))
+    rotate(calc(-1 * var(--node-angle)));
+  transition: filter 180ms ease, transform 220ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.radial-node:hover {
+  filter: drop-shadow(0 0 18px rgba(0, 212, 255, 0.28));
+  transform:
+    translate(-50%, -50%)
+    rotate(var(--node-angle))
+    translateY(calc(-1 * (var(--home-node-radius) + 0.35rem)))
+    rotate(calc(-1 * var(--node-angle)));
+}
+
+.profile-portrait::after {
+  content: "";
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+  background:
+    linear-gradient(115deg, transparent 0 42%, rgba(0, 212, 255, 0.18) 45%, transparent 48%),
+    radial-gradient(circle at 74% 18%, rgba(255, 255, 255, 0.18), transparent 18%);
+  mix-blend-mode: screen;
+}
+
+.project-card-copy {
+  display: -webkit-box;
+  min-height: 4.5rem;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.skill-bar {
+  transform-origin: left center;
+  transition: width 420ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.section-stage {
+  padding: 7rem 1rem 7rem;
+}
+
+@media (min-width: 640px) {
+  .section-stage {
+    padding: 6rem 2rem 7rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .section-stage {
+    padding: 4rem 2.5rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  .section-stage {
+    padding-left: 3.5rem;
+    padding-right: 3.5rem;
+  }
+}
+
 .field {
   width: 100%;
   border: 1px solid rgba(23, 34, 49, 0.9);
@@ -157,6 +234,27 @@ textarea:focus-visible {
 @keyframes orbitSpin {
   to {
     transform: rotate(360deg);
+  }
+}
+
+@keyframes radialNodeIn {
+  0% {
+    opacity: 0;
+    transform:
+      translate(-50%, -50%)
+      rotate(var(--node-angle))
+      translateY(calc(-1 * (var(--home-node-radius) - 1rem)))
+      rotate(calc(-1 * var(--node-angle)))
+      scale(0.92);
+  }
+  100% {
+    opacity: 1;
+    transform:
+      translate(-50%, -50%)
+      rotate(var(--node-angle))
+      translateY(calc(-1 * var(--home-node-radius)))
+      rotate(calc(-1 * var(--node-angle)))
+      scale(1);
   }
 }
 

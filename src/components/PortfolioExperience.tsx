@@ -1,7 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import type { FormEvent, SVGProps } from 'react'
+import Image from 'next/image'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import type { CSSProperties, SVGProps } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
   ArrowLeft,
@@ -10,7 +11,7 @@ import {
   Bot,
   Briefcase,
   Brain,
-  Cloud,
+  ChevronDown,
   Code2,
   Database,
   Download,
@@ -19,15 +20,18 @@ import {
   Layers,
   Mail,
   MapPin,
-  Send,
   Settings,
   User,
+  Volume2,
+  VolumeX,
   type LucideIcon,
 } from 'lucide-react'
-import { education, experience, meta, metrics, projects, publications, skills } from '@/data/portfolio'
+import { education, experience, meta, metrics, projects, publications } from '@/data/portfolio'
 import { cn } from '@/lib/utils'
 
 type SectionId = 'about' | 'experience' | 'projects' | 'skills' | 'publications' | 'contact'
+type ViewId = SectionId | 'home'
+type SoundName = 'hover' | 'click'
 
 type SectionNode = {
   id: SectionId
@@ -36,13 +40,11 @@ type SectionNode = {
   eyebrow: string
   title: string
   Icon: LucideIcon
-  position: {
-    top?: string
-    bottom?: string
-    left?: string
-    right?: string
-    transform?: string
-  }
+  angle: number
+}
+
+type SoundControls = {
+  onHoverSound: () => void
 }
 
 const sectionNodes: SectionNode[] = [
@@ -53,16 +55,7 @@ const sectionNodes: SectionNode[] = [
     eyebrow: 'About Me',
     title: 'Data and AI professional driven by impact.',
     Icon: User,
-    position: { top: '5%', left: '50%', transform: 'translateX(-50%)' },
-  },
-  {
-    id: 'experience',
-    label: 'Experience',
-    number: '02',
-    eyebrow: 'Experience',
-    title: 'Building solutions. Delivering value.',
-    Icon: Briefcase,
-    position: { top: '31%', left: '6%' },
+    angle: 0,
   },
   {
     id: 'projects',
@@ -71,16 +64,7 @@ const sectionNodes: SectionNode[] = [
     eyebrow: 'Projects',
     title: 'Selected work. Real impact.',
     Icon: Layers,
-    position: { top: '31%', right: '6%' },
-  },
-  {
-    id: 'skills',
-    label: 'Skills',
-    number: '04',
-    eyebrow: 'Skills',
-    title: 'Tools. Technologies. Expertise.',
-    Icon: Code2,
-    position: { bottom: '21%', left: '8%' },
+    angle: 60,
   },
   {
     id: 'publications',
@@ -89,7 +73,7 @@ const sectionNodes: SectionNode[] = [
     eyebrow: 'Publications',
     title: 'Research signal and technical writing.',
     Icon: BookOpen,
-    position: { bottom: '21%', right: '8%' },
+    angle: 120,
   },
   {
     id: 'contact',
@@ -98,32 +82,46 @@ const sectionNodes: SectionNode[] = [
     eyebrow: 'Contact',
     title: "Let's build something meaningful.",
     Icon: Mail,
-    position: { bottom: '4%', left: '50%', transform: 'translateX(-50%)' },
+    angle: 180,
+  },
+  {
+    id: 'skills',
+    label: 'Skills',
+    number: '04',
+    eyebrow: 'Skills',
+    title: 'Tools. Technologies. Expertise.',
+    Icon: Code2,
+    angle: 240,
+  },
+  {
+    id: 'experience',
+    label: 'Experience',
+    number: '02',
+    eyebrow: 'Experience',
+    title: 'Building solutions. Delivering value.',
+    Icon: Briefcase,
+    angle: 300,
   },
 ]
 
-const subtitles = ['AI & Data', 'Automation', 'LLM Systems']
+const subtitles = ['LLM Systems', 'Agentic AI', 'Automation']
 
 const aboutParagraphs = [
-  'Machine Learning Engineer with 7+ years across research, applied ML, and production AI systems, plus a broader data and consulting foundation from 2012.',
-  'My work sits at the intersection of agentic AI, advanced RAG, LLM infrastructure, document intelligence, and production cloud systems.',
-  'I have moved from academic NLP and computer vision research to production document intelligence at Unstructured, then to sole ownership of a complete multi-agent SaaS backend at Sapience AI.',
-  'The through-line is practical systems design: translating complex business and scientific challenges into reliable, observable, scalable AI products.',
+  'I design and build data, AI, and automation systems that turn complex problems into measurable outcomes.',
+  'With a background in ML engineering and business intelligence, I bridge the gap between data and decisions.',
+  'Recent work includes agentic AI, advanced RAG, LLM infrastructure, document intelligence, and production cloud systems.',
 ]
 
 const techHighlights = [
   'Python',
-  'LangGraph',
-  'LangChain',
-  'Qdrant',
-  'Vertex AI',
-  'FastAPI',
-  'Docker',
-  'GCP Cloud Run',
-  'OpenTelemetry',
-  'PyTorch',
   'SQL',
   'Pandas',
+  'PyTorch',
+  'LangChain',
+  'Qdrant',
+  'Docker',
+  'GCP',
+  'FastAPI',
 ]
 
 const profilePillars = [
@@ -132,8 +130,8 @@ const profilePillars = [
     text: 'Agentic systems, advanced RAG, LLM infrastructure, and document intelligence.',
   },
   {
-    label: 'Breadth',
-    text: 'Data, training, fine-tuning, evaluation, deployment, observability, and BI automation.',
+    label: 'Production Range',
+    text: 'Evaluation, deployment, observability, cloud services, and BI automation.',
   },
   {
     label: 'Target Roles',
@@ -141,25 +139,88 @@ const profilePillars = [
   },
 ]
 
-const skillIconMap: Record<string, LucideIcon> = {
-  Bot,
-  Database,
-  Brain,
-  Layers,
-  Settings,
-  Cloud,
+const topStrengths = [
+  'System Design',
+  'Automation',
+  'Data Storytelling',
+  'Problem Solving',
+  'Research',
+  'MLOps',
+]
+
+const skillDashboard = [
+  {
+    label: 'AI / ML',
+    Icon: Brain,
+    skills: [
+      { name: 'Python', level: 96 },
+      { name: 'PyTorch', level: 90 },
+      { name: 'Scikit-learn', level: 86 },
+      { name: 'LangChain', level: 90 },
+      { name: 'Transformers', level: 84 },
+    ],
+  },
+  {
+    label: 'Data / RAG',
+    Icon: Database,
+    skills: [
+      { name: 'SQL', level: 92 },
+      { name: 'Pandas', level: 90 },
+      { name: 'Hybrid RAG', level: 92 },
+      { name: 'Qdrant', level: 88 },
+      { name: 'Power BI', level: 78 },
+    ],
+  },
+  {
+    label: 'Dev / Ops',
+    Icon: Settings,
+    skills: [
+      { name: 'Docker', level: 90 },
+      { name: 'GCP Cloud Run', level: 88 },
+      { name: 'FastAPI', level: 90 },
+      { name: 'Git', level: 86 },
+      { name: 'Linux', level: 82 },
+    ],
+  },
+]
+
+const sectionWidthClass: Record<SectionId, string> = {
+  about: 'max-w-[1120px]',
+  experience: 'max-w-[980px]',
+  projects: 'max-w-[980px]',
+  skills: 'max-w-[1040px]',
+  publications: 'max-w-[1060px]',
+  contact: 'max-w-[980px]',
 }
+
+const panelEase: [number, number, number, number] = [0.16, 1, 0.3, 1]
 
 const panelVariants = {
-  initial: { opacity: 0, scale: 0.98, y: 24 },
+  initial: { opacity: 1, scale: 1, y: 0 },
   animate: { opacity: 1, scale: 1, y: 0 },
-  exit: { opacity: 0, scale: 0.98, y: -20 },
+  exit: { opacity: 0, scale: 0.985, y: -18 },
 }
 
+const projectIcons = [Bot, Database, Layers, Brain, Code2, Settings]
+
+const SOUND_MUTED_KEY = 'ml-portfolio-sound-muted'
+
 export default function PortfolioExperience() {
-  const [activeSection, setActiveSection] = useState<SectionId | 'home'>('home')
+  const [activeSection, setActiveSection] = useState<ViewId>('home')
   const [subtitleIndex, setSubtitleIndex] = useState(0)
-  const activeNode = sectionNodes.find(section => section.id === activeSection)
+  const [soundMuted, setSoundMuted] = useState(() => {
+    if (typeof window === 'undefined') {
+      return false
+    }
+
+    return window.localStorage.getItem(SOUND_MUTED_KEY) === 'true'
+  })
+  const hoverAudioRef = useRef<HTMLAudioElement | null>(null)
+  const clickAudioRef = useRef<HTMLAudioElement | null>(null)
+  const activeNode = useMemo(
+    () => sectionNodes.find(section => section.id === activeSection),
+    [activeSection],
+  )
 
   useEffect(() => {
     const interval = window.setInterval(() => {
@@ -168,6 +229,30 @@ export default function PortfolioExperience() {
 
     return () => window.clearInterval(interval)
   }, [])
+
+  useEffect(() => {
+    hoverAudioRef.current = new Audio('/sounds/ui-hover-light.mp3')
+    clickAudioRef.current = new Audio('/sounds/click.mp3')
+
+    if (hoverAudioRef.current) {
+      hoverAudioRef.current.preload = 'auto'
+      hoverAudioRef.current.volume = 0.28
+    }
+
+    if (clickAudioRef.current) {
+      clickAudioRef.current.preload = 'auto'
+      clickAudioRef.current.volume = 0.34
+    }
+
+    return () => {
+      hoverAudioRef.current = null
+      clickAudioRef.current = null
+    }
+  }, [])
+
+  useEffect(() => {
+    window.localStorage.setItem(SOUND_MUTED_KEY, String(soundMuted))
+  }, [soundMuted])
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -190,8 +275,37 @@ export default function PortfolioExperience() {
     }
   }, [])
 
-  function handleSelect(section: SectionId | 'home') {
+  function unlockAudio() {
+    hoverAudioRef.current?.load()
+    clickAudioRef.current?.load()
+  }
+
+  function playSound(sound: SoundName) {
+    if (soundMuted) {
+      return
+    }
+
+    const audio = sound === 'hover' ? hoverAudioRef.current : clickAudioRef.current
+    if (!audio) {
+      return
+    }
+
+    audio.currentTime = 0
+    audio.play().catch(() => {
+      // Browsers can block audio until a user gesture. Navigation should never wait for sound.
+    })
+  }
+
+  function playHoverSound() {
+    if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+      playSound('hover')
+    }
+  }
+
+  function handleSelect(section: ViewId) {
+    playSound('click')
     setActiveSection(section)
+
     const url =
       section === 'home'
         ? window.location.pathname
@@ -199,17 +313,29 @@ export default function PortfolioExperience() {
     window.history.pushState(null, '', url)
   }
 
-  return (
-    <main className="relative min-h-screen overflow-hidden bg-bg text-text">
-      <SceneBackdrop />
-      <TopLinks />
+  function handleToggleSound() {
+    if (!soundMuted) {
+      playSound('click')
+    }
+    setSoundMuted(value => !value)
+  }
 
-      <AnimatePresence mode="wait" initial={false}>
+  return (
+    <main
+      className="relative min-h-screen overflow-x-hidden bg-bg text-text"
+      onPointerDownCapture={unlockAudio}
+      onKeyDownCapture={unlockAudio}
+    >
+      <SceneBackdrop />
+      <TopLinks soundMuted={soundMuted} onToggleSound={handleToggleSound} />
+
+      <AnimatePresence mode="wait">
         {activeSection === 'home' ? (
           <HomeView
             key="home"
             subtitle={subtitles[subtitleIndex]}
             onSelect={handleSelect}
+            onHoverSound={playHoverSound}
           />
         ) : (
           <SectionShell
@@ -231,23 +357,41 @@ function isSectionId(value: string): value is SectionId {
 function SceneBackdrop() {
   return (
     <div className="pointer-events-none fixed inset-0 overflow-hidden">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_105%,rgba(0,212,255,0.2),transparent_28%),radial-gradient(circle_at_15%_22%,rgba(124,106,255,0.12),transparent_28%),linear-gradient(180deg,#05080c_0%,#071018_48%,#040609_100%)]" />
-      <div className="absolute inset-0 opacity-[0.08] [background-image:linear-gradient(rgba(0,212,255,0.55)_1px,transparent_1px),linear-gradient(90deg,rgba(0,212,255,0.55)_1px,transparent_1px)] [background-size:64px_64px]" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.3)_0_1px,transparent_1px),radial-gradient(circle_at_84%_18%,rgba(0,212,255,0.45)_0_1px,transparent_1px),radial-gradient(circle_at_72%_70%,rgba(124,106,255,0.45)_0_1px,transparent_1px)] [background-size:240px_240px,360px_360px,300px_300px] opacity-30" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_105%,rgba(0,212,255,0.2),transparent_28%),radial-gradient(circle_at_16%_20%,rgba(124,106,255,0.11),transparent_28%),linear-gradient(180deg,#05080c_0%,#071018_48%,#040609_100%)]" />
+      <div className="absolute inset-0 opacity-[0.075] [background-image:linear-gradient(rgba(0,212,255,0.55)_1px,transparent_1px),linear-gradient(90deg,rgba(0,212,255,0.55)_1px,transparent_1px)] [background-size:64px_64px]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.3)_0_1px,transparent_1px),radial-gradient(circle_at_84%_18%,rgba(0,212,255,0.42)_0_1px,transparent_1px),radial-gradient(circle_at_72%_70%,rgba(124,106,255,0.42)_0_1px,transparent_1px)] [background-size:240px_240px,360px_360px,300px_300px] opacity-30" />
       <div className="absolute -bottom-24 left-1/2 h-48 w-[78vw] -translate-x-1/2 rounded-[50%] border-t border-accent/30 bg-accent/10 blur-2xl" />
     </div>
   )
 }
 
-function TopLinks() {
+function TopLinks({
+  soundMuted,
+  onToggleSound,
+}: {
+  soundMuted: boolean
+  onToggleSound: () => void
+}) {
   const socials = [
     { label: 'LinkedIn', href: meta.linkedin, Icon: LinkedinIcon },
     { label: 'GitHub', href: meta.github, Icon: GithubIcon },
     { label: 'Email', href: `mailto:${meta.email}`, Icon: Mail },
   ]
+  const SoundIcon = soundMuted ? VolumeX : Volume2
 
   return (
-    <div className="fixed right-5 top-5 z-50 flex items-center gap-3 sm:right-8 sm:top-7">
+    <div className="fixed right-3 top-3 z-50 flex items-center gap-2 sm:right-8 sm:top-7 sm:gap-3">
+      <button
+        type="button"
+        aria-label={soundMuted ? 'Enable interface sound' : 'Mute interface sound'}
+        aria-pressed={!soundMuted}
+        title={soundMuted ? 'Enable sound' : 'Mute sound'}
+        onClick={onToggleSound}
+        className="icon-button h-8 w-8 rounded-sm text-text/80 sm:h-9 sm:w-9"
+      >
+        <SoundIcon size={15} strokeWidth={1.9} />
+      </button>
+
       {socials.map(({ label, href, Icon }) => (
         <a
           key={label}
@@ -268,27 +412,28 @@ function TopLinks() {
 function HomeView({
   subtitle,
   onSelect,
+  onHoverSound,
 }: {
   subtitle: string
-  onSelect: (section: SectionId) => void
-}) {
+  onSelect: (section: ViewId) => void
+} & SoundControls) {
   return (
     <motion.section
       variants={panelVariants}
-      initial={false}
+      initial="initial"
       animate="animate"
       exit="exit"
-      transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
-      className="relative z-10 flex min-h-screen items-center justify-center px-5 py-24"
+      transition={{ duration: 0.55, ease: panelEase }}
+      className="relative z-10 flex min-h-screen items-center justify-center px-4 py-16 sm:px-5 sm:py-20"
     >
-      <div className="relative flex min-h-[min(880px,calc(100vh-7rem))] w-full max-w-[1500px] items-center justify-center">
+      <div className="home-orbit-stage relative flex min-h-[min(780px,calc(100vh-4rem))] w-full max-w-[1180px] flex-col items-center justify-center">
         <OrbitSystem />
 
-        <div className="relative z-20 flex max-w-xl flex-col items-center text-center">
+        <div className="relative z-20 flex w-full max-w-[min(42rem,100%)] flex-col items-center text-center">
           <motion.p
             initial={false}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.05, duration: 0.5 }}
+            transition={{ delay: 0.08, duration: 0.45 }}
             className="mb-4 font-mono text-[10px] font-semibold uppercase tracking-[0.35em] text-accent"
           >
             &lt; ml_engineer /&gt;
@@ -296,9 +441,9 @@ function HomeView({
 
           <motion.h1
             initial={false}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.12, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-            className="font-display text-[clamp(5rem,12vw,11.5rem)] font-bold leading-[0.82] tracking-normal text-text"
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ delay: 0.16, duration: 0.7, ease: panelEase }}
+            className="w-full font-display text-[clamp(4.2rem,18vw,9.8rem)] font-bold leading-[0.84] tracking-normal text-text sm:text-[clamp(5.6rem,10vw,10rem)]"
           >
             <span className="block text-[0.58em] font-normal text-[#788399]">Sebastian</span>
             Laverde
@@ -307,8 +452,8 @@ function HomeView({
           <motion.div
             initial={false}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2, duration: 0.45 }}
-            className="mt-6 flex min-h-7 items-center gap-2 font-mono text-xs uppercase tracking-[0.24em] text-text sm:text-sm"
+            transition={{ delay: 0.28, duration: 0.45 }}
+            className="mt-5 flex min-h-7 flex-wrap items-center justify-center gap-2 font-mono text-[11px] uppercase tracking-[0.2em] text-text sm:text-sm sm:tracking-[0.24em]"
           >
             <span>AI & Data</span>
             <span className="text-accent">.</span>
@@ -318,8 +463,8 @@ function HomeView({
           <motion.p
             initial={false}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.28, duration: 0.45 }}
-            className="mt-6 max-w-lg border border-border/70 bg-surface/35 px-6 py-3 font-mono text-[11px] leading-6 text-muted shadow-[0_0_38px_rgba(0,212,255,0.05)] backdrop-blur"
+            transition={{ delay: 0.38, duration: 0.45 }}
+            className="mt-5 w-full max-w-[34rem] border border-border/70 bg-surface/35 px-4 py-3 font-mono text-[10px] leading-6 text-muted shadow-[0_0_38px_rgba(0,212,255,0.05)] backdrop-blur sm:px-6 sm:text-[11px]"
           >
             Building intelligent systems at the intersection of data, models, and real-world impact.
             <span className="ml-1 inline-block h-4 w-px translate-y-1 bg-accent animate-blink" />
@@ -328,13 +473,13 @@ function HomeView({
           <motion.div
             initial={false}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.36, duration: 0.45 }}
-            className="mt-7 flex flex-wrap items-center justify-center gap-3"
+            transition={{ delay: 0.48, duration: 0.45 }}
+            className="mt-6 flex flex-wrap items-center justify-center gap-3"
           >
             <button
               type="button"
               onClick={() => onSelect('projects')}
-              className="group inline-flex h-10 items-center gap-2 rounded-sm border border-accent bg-accent px-5 font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-bg shadow-[0_0_24px_rgba(0,212,255,0.35)] transition hover:-translate-y-0.5 hover:shadow-[0_0_36px_rgba(0,212,255,0.45)]"
+              className="group inline-flex h-10 items-center gap-2 rounded-sm border border-accent bg-accent px-4 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-bg shadow-[0_0_24px_rgba(0,212,255,0.35)] transition hover:-translate-y-0.5 hover:shadow-[0_0_36px_rgba(0,212,255,0.45)] sm:px-5 sm:tracking-[0.18em]"
             >
               View Work
               <ArrowRight size={13} className="transition group-hover:translate-x-0.5" />
@@ -342,7 +487,7 @@ function HomeView({
             <a
               href={meta.cvPath}
               download
-              className="inline-flex h-10 items-center gap-2 rounded-sm border border-border bg-bg/50 px-5 font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-text/80 transition hover:border-accent/70 hover:text-accent"
+              className="inline-flex h-10 items-center gap-2 rounded-sm border border-border bg-bg/50 px-4 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-text/80 transition hover:border-accent/70 hover:text-accent sm:px-5 sm:tracking-[0.18em]"
             >
               <Download size={13} />
               Download CV
@@ -352,39 +497,45 @@ function HomeView({
 
         <nav aria-label="Portfolio sections" className="pointer-events-none absolute inset-0 hidden md:block">
           {sectionNodes.map((section, index) => (
-            <motion.button
+            <button
               key={section.id}
               type="button"
               aria-label={`Open ${section.label}`}
               onClick={() => onSelect(section.id)}
-              initial={false}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.22 + index * 0.05, duration: 0.45 }}
-              className="group pointer-events-auto absolute flex -translate-y-1/2 flex-col items-center gap-3 rounded-sm px-4 py-3 text-center transition hover:-translate-y-[54%]"
-              style={section.position}
+              onMouseEnter={onHoverSound}
+              className="radial-node group pointer-events-auto flex flex-col items-center gap-3 rounded-sm px-4 py-3 text-center"
+              style={
+                {
+                  '--node-angle': `${section.angle}deg`,
+                  '--node-delay': `${0.52 + index * 0.06}s`,
+                } as CSSProperties
+              }
             >
-              <span className="flex h-10 w-10 items-center justify-center rounded-full border border-accent/30 bg-bg/70 text-accent shadow-[0_0_22px_rgba(0,212,255,0.08)] backdrop-blur transition group-hover:border-accent group-hover:bg-accent/10 group-hover:shadow-[0_0_26px_rgba(0,212,255,0.32)]">
+              <span className="flex h-11 w-11 items-center justify-center rounded-full border border-accent/35 bg-bg/70 text-accent shadow-[0_0_22px_rgba(0,212,255,0.08)] backdrop-blur transition group-hover:border-accent group-hover:bg-accent/10 group-hover:shadow-[0_0_30px_rgba(0,212,255,0.34)]">
                 <section.Icon size={18} />
               </span>
               <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-text transition group-hover:text-accent">
                 {section.label}
               </span>
-            </motion.button>
+            </button>
           ))}
         </nav>
 
-        <nav aria-label="Portfolio sections" className="absolute bottom-0 z-30 grid w-full grid-cols-2 gap-2 px-1 md:hidden">
-          {sectionNodes.map(section => (
-            <button
-              key={section.id}
-              type="button"
-              onClick={() => onSelect(section.id)}
-              className="flex h-12 items-center justify-center gap-2 rounded-sm border border-border/80 bg-surface/70 px-3 font-mono text-[10px] uppercase tracking-[0.16em] text-text/85 backdrop-blur transition hover:border-accent/70 hover:text-accent"
-            >
-              <section.Icon size={14} />
-              {section.label}
-            </button>
-          ))}
+        <nav aria-label="Portfolio sections" className="relative z-30 mt-10 grid w-full max-w-[560px] grid-cols-2 gap-2 md:hidden">
+          {sectionNodes
+            .slice()
+            .sort((a, b) => Number(a.number) - Number(b.number))
+            .map(section => (
+              <button
+                key={section.id}
+                type="button"
+                onClick={() => onSelect(section.id)}
+                className="flex h-12 min-w-0 items-center justify-center gap-2 rounded-sm border border-border/80 bg-surface/70 px-2 font-mono text-[9px] uppercase tracking-[0.13em] text-text/85 backdrop-blur transition hover:border-accent/70 hover:text-accent"
+              >
+                <section.Icon size={14} />
+                <span className="truncate">{section.label}</span>
+              </button>
+            ))}
         </nav>
       </div>
     </motion.section>
@@ -394,13 +545,28 @@ function HomeView({
 function OrbitSystem() {
   return (
     <div className="pointer-events-none absolute inset-0 hidden items-center justify-center md:flex">
-      <div className="absolute h-[min(72vw,820px)] w-[min(72vw,820px)] rounded-full border border-accent/10" />
-      <div className="absolute h-[min(60vw,690px)] w-[min(60vw,690px)] rounded-full border border-accent/20 opacity-80 orbit-spin" />
-      <div className="absolute h-[min(48vw,560px)] w-[min(48vw,560px)] rounded-full border border-dashed border-violet/30 orbit-spin-slow" />
-      <div className="absolute h-[min(36vw,420px)] w-[min(36vw,420px)] rounded-full border border-accent/15" />
-      <div className="absolute h-px w-[min(86vw,1040px)] bg-gradient-to-r from-transparent via-accent/25 to-transparent" />
-      <div className="absolute h-[min(78vw,880px)] w-px bg-gradient-to-b from-transparent via-accent/18 to-transparent" />
-      <div className="absolute h-[min(62vw,720px)] w-[min(62vw,720px)] rounded-full bg-[conic-gradient(from_90deg,transparent,rgba(0,212,255,0.16),transparent,rgba(124,106,255,0.18),transparent)] opacity-45 blur-sm" />
+      <motion.div
+        initial={false}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 0.18, duration: 0.8, ease: panelEase }}
+        className="absolute h-[var(--home-orbit-size)] w-[var(--home-orbit-size)] rounded-full border border-accent/10"
+      />
+      <motion.div
+        initial={false}
+        animate={{ opacity: 0.85, scale: 1 }}
+        transition={{ delay: 0.25, duration: 0.8, ease: panelEase }}
+        className="absolute h-[calc(var(--home-orbit-size)*0.84)] w-[calc(var(--home-orbit-size)*0.84)] rounded-full border border-accent/20 orbit-spin"
+      />
+      <motion.div
+        initial={false}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 0.32, duration: 0.8, ease: panelEase }}
+        className="absolute h-[calc(var(--home-orbit-size)*0.68)] w-[calc(var(--home-orbit-size)*0.68)] rounded-full border border-dashed border-violet/30 orbit-spin-slow"
+      />
+      <div className="absolute h-[calc(var(--home-orbit-size)*0.5)] w-[calc(var(--home-orbit-size)*0.5)] rounded-full border border-accent/15" />
+      <div className="absolute h-px w-[min(72vw,900px)] bg-gradient-to-r from-transparent via-accent/25 to-transparent" />
+      <div className="absolute h-[min(70vw,760px)] w-px bg-gradient-to-b from-transparent via-accent/18 to-transparent" />
+      <div className="absolute h-[calc(var(--home-orbit-size)*0.72)] w-[calc(var(--home-orbit-size)*0.72)] rounded-full bg-[conic-gradient(from_90deg,transparent,rgba(0,212,255,0.16),transparent,rgba(124,106,255,0.18),transparent)] opacity-45 blur-sm" />
     </div>
   )
 }
@@ -412,71 +578,77 @@ function SectionShell({
 }: {
   activeSection: SectionId
   activeNode?: SectionNode
-  onSelect: (section: SectionId | 'home') => void
+  onSelect: (section: ViewId) => void
 }) {
   return (
     <motion.section
       variants={panelVariants}
-      initial={false}
+      initial="initial"
       animate="animate"
       exit="exit"
-      transition={{ duration: 0.48, ease: [0.16, 1, 0.3, 1] }}
-      className="relative z-10 min-h-screen px-3 py-3 sm:px-5 sm:py-5"
+      transition={{ duration: 0.48, ease: panelEase }}
+      className="relative z-10 min-h-screen px-2 py-2 sm:px-4 sm:py-4"
     >
-      <div className="min-h-[calc(100vh-1.5rem)] border border-border/90 bg-bg/76 shadow-[0_0_80px_rgba(0,0,0,0.45)] backdrop-blur-xl sm:min-h-[calc(100vh-2.5rem)]">
-        <div className="grid min-h-[calc(100vh-1.5rem)] grid-cols-1 sm:min-h-[calc(100vh-2.5rem)] lg:grid-cols-[76px_minmax(0,1fr)]">
-        <ContextRail activeSection={activeSection} onSelect={onSelect} />
+      <div className="min-h-[calc(100vh-1rem)] border border-border/90 bg-bg/76 shadow-[0_0_80px_rgba(0,0,0,0.45)] backdrop-blur-xl sm:min-h-[calc(100vh-2rem)]">
+        <div className="grid min-h-[calc(100vh-1rem)] grid-cols-1 sm:min-h-[calc(100vh-2rem)] lg:grid-cols-[68px_minmax(0,1fr)]">
+          <ContextRail activeSection={activeSection} onSelect={onSelect} />
 
-          <div className="min-w-0 px-5 pb-24 pt-16 sm:px-8 sm:pt-20 lg:px-12 lg:pb-16 xl:px-16">
-            <div className="mx-auto w-full max-w-[1420px]">
-              <button
-                type="button"
-                onClick={() => onSelect('home')}
-                className="mb-8 inline-flex items-center gap-2 rounded-sm px-2 py-1 font-mono text-[10px] uppercase tracking-[0.2em] text-muted transition hover:bg-accent/10 hover:text-accent"
-              >
-                <ArrowLeft size={13} />
-                Home
-              </button>
+          <div className="relative min-w-0">
+            <button
+              type="button"
+              onClick={() => onSelect('home')}
+              className="absolute left-4 top-4 z-30 inline-flex items-center gap-2 rounded-sm px-2 py-1 font-mono text-[10px] uppercase tracking-[0.2em] text-muted transition hover:bg-accent/10 hover:text-accent sm:left-6 sm:top-5"
+            >
+              <ArrowLeft size={13} />
+              Home
+            </button>
 
-            {activeNode && (
-              <div className="mb-8 border-b border-border/70 pb-7">
-                <div className="flex max-w-5xl items-start gap-4">
-                  <span className="mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-accent/50 bg-accent/10 text-accent shadow-[0_0_24px_rgba(0,212,255,0.16)]">
-                    <activeNode.Icon size={17} />
-                  </span>
-                  <div className="min-w-0">
-                    <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.24em] text-accent">
-                      {activeNode.eyebrow}
-                    </p>
-                    <h2 className="mt-2 max-w-4xl text-balance font-display text-3xl font-normal leading-[1.08] text-text sm:text-4xl lg:text-5xl">
-                      {activeNode.title}
-                    </h2>
-                  </div>
-                </div>
+            <div className="section-stage flex min-h-[calc(100vh-1rem)] items-start justify-center sm:min-h-[calc(100vh-2rem)] lg:items-center">
+              <div className={cn('w-full', sectionWidthClass[activeSection])}>
+                {activeNode && <SectionHeading section={activeNode} />}
+
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={activeSection}
+                    initial={false}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -14 }}
+                    transition={{ duration: 0.35, ease: panelEase }}
+                  >
+                    {activeSection === 'about' && <AboutPanel />}
+                    {activeSection === 'experience' && <ExperiencePanel />}
+                    {activeSection === 'projects' && <ProjectsPanel />}
+                    {activeSection === 'skills' && <SkillsPanel />}
+                    {activeSection === 'publications' && <PublicationsPanel />}
+                    {activeSection === 'contact' && <ContactPanel />}
+                  </motion.div>
+                </AnimatePresence>
               </div>
-            )}
-
-            <AnimatePresence mode="wait" initial={false}>
-              <motion.div
-                key={activeSection}
-                initial={false}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -14 }}
-                transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-              >
-                {activeSection === 'about' && <AboutPanel />}
-                {activeSection === 'experience' && <ExperiencePanel />}
-                {activeSection === 'projects' && <ProjectsPanel />}
-                {activeSection === 'skills' && <SkillsPanel />}
-                {activeSection === 'publications' && <PublicationsPanel />}
-                {activeSection === 'contact' && <ContactPanel />}
-              </motion.div>
-            </AnimatePresence>
+            </div>
           </div>
-        </div>
         </div>
       </div>
     </motion.section>
+  )
+}
+
+function SectionHeading({ section }: { section: SectionNode }) {
+  const Icon = section.Icon
+
+  return (
+    <div className="mb-9 flex items-start gap-4 sm:mb-11">
+      <span className="mt-1 hidden h-10 w-10 shrink-0 items-center justify-center rounded-full border border-accent/45 bg-accent/10 text-accent shadow-[0_0_24px_rgba(0,212,255,0.16)] sm:flex lg:hidden">
+        <Icon size={17} />
+      </span>
+      <div className="min-w-0">
+        <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.24em] text-accent">
+          {section.eyebrow}
+        </p>
+        <h2 className="mt-3 max-w-3xl text-balance font-display text-3xl font-normal leading-[1.08] text-text sm:text-4xl lg:text-[2.65rem]">
+          {section.title}
+        </h2>
+      </div>
+    </div>
   )
 }
 
@@ -485,7 +657,7 @@ function ContextRail({
   onSelect,
 }: {
   activeSection: SectionId
-  onSelect: (section: SectionId) => void
+  onSelect: (section: ViewId) => void
 }) {
   return (
     <>
@@ -493,9 +665,43 @@ function ContextRail({
         aria-label="Section navigation"
         className="hidden border-r border-border/70 bg-bg/36 lg:flex lg:items-center lg:justify-center"
       >
-        <div className="sticky top-20 flex flex-col items-center gap-3">
-          <div className="h-16 w-px bg-gradient-to-b from-transparent via-border to-border" />
-          {sectionNodes.map(section => {
+        <div className="sticky top-16 flex flex-col items-center gap-3">
+          <div className="h-14 w-px bg-gradient-to-b from-transparent via-border to-border" />
+          {sectionNodes
+            .slice()
+            .sort((a, b) => Number(a.number) - Number(b.number))
+            .map(section => {
+              const isActive = activeSection === section.id
+              return (
+                <button
+                  key={section.id}
+                  type="button"
+                  aria-label={`Open ${section.label}`}
+                  title={section.label}
+                  onClick={() => onSelect(section.id)}
+                  className={cn(
+                    'group flex h-10 w-10 items-center justify-center rounded-full border text-muted transition',
+                    isActive
+                      ? 'border-accent bg-accent/10 text-accent shadow-[0_0_24px_rgba(0,212,255,0.22)]'
+                      : 'border-transparent hover:border-accent/40 hover:bg-accent/5 hover:text-text',
+                  )}
+                >
+                  <section.Icon size={15} className="transition group-hover:scale-110" />
+                </button>
+              )
+            })}
+          <div className="h-14 w-px bg-gradient-to-b from-border via-border to-transparent" />
+        </div>
+      </nav>
+
+      <nav
+        aria-label="Section navigation"
+        className="fixed bottom-4 left-1/2 z-40 flex -translate-x-1/2 items-center gap-2 rounded-full border border-border/80 bg-bg/90 p-2 shadow-[0_0_28px_rgba(0,0,0,0.35)] backdrop-blur lg:hidden"
+      >
+        {sectionNodes
+          .slice()
+          .sort((a, b) => Number(a.number) - Number(b.number))
+          .map(section => {
             const isActive = activeSection === section.id
             return (
               <button
@@ -505,42 +711,14 @@ function ContextRail({
                 title={section.label}
                 onClick={() => onSelect(section.id)}
                 className={cn(
-                  'flex h-10 w-10 items-center justify-center rounded-full border text-muted transition',
-                  isActive
-                    ? 'border-accent bg-accent/10 text-accent shadow-[0_0_24px_rgba(0,212,255,0.22)]'
-                    : 'border-transparent hover:border-accent/40 hover:bg-accent/5 hover:text-text',
+                  'flex h-9 w-9 items-center justify-center rounded-full border text-muted transition',
+                  isActive ? 'border-accent bg-accent/10 text-accent' : 'border-transparent hover:text-text',
                 )}
               >
                 <section.Icon size={15} />
               </button>
             )
           })}
-          <div className="h-16 w-px bg-gradient-to-b from-border via-border to-transparent" />
-        </div>
-      </nav>
-
-      <nav
-        aria-label="Section navigation"
-        className="fixed bottom-4 left-1/2 z-40 flex -translate-x-1/2 items-center gap-2 rounded-full border border-border/80 bg-bg/90 p-2 shadow-[0_0_28px_rgba(0,0,0,0.35)] backdrop-blur lg:hidden"
-      >
-        {sectionNodes.map(section => {
-          const isActive = activeSection === section.id
-          return (
-            <button
-              key={section.id}
-              type="button"
-              aria-label={`Open ${section.label}`}
-              title={section.label}
-              onClick={() => onSelect(section.id)}
-              className={cn(
-                'flex h-9 w-9 items-center justify-center rounded-full border text-muted transition',
-                isActive ? 'border-accent bg-accent/10 text-accent' : 'border-transparent',
-              )}
-            >
-              <section.Icon size={15} />
-            </button>
-          )
-        })}
       </nav>
     </>
   )
@@ -548,96 +726,78 @@ function ContextRail({
 
 function AboutPanel() {
   return (
-    <div className="grid gap-8 xl:grid-cols-[minmax(0,0.92fr)_minmax(380px,0.68fr)] xl:items-start">
-      <div className="space-y-6">
-        <div className="rounded-sm border border-border/70 bg-surface/40 p-5 sm:p-6">
-          <p className="font-sans text-lg leading-8 text-text sm:text-xl">
-            {meta.summary}
+    <div className="space-y-8">
+      <div className="grid gap-8 lg:grid-cols-[minmax(0,0.88fr)_minmax(320px,0.72fr)] lg:items-center">
+        <div className="space-y-5">
+          <p className="max-w-xl font-sans text-base leading-7 text-text/90 sm:text-lg">
+            {aboutParagraphs[0]}
           </p>
-          <div className="mt-6 grid gap-4 md:grid-cols-2">
-            {aboutParagraphs.map(paragraph => (
+          <div className="grid gap-5 sm:grid-cols-2">
+            {aboutParagraphs.slice(1).map(paragraph => (
               <p key={paragraph} className="font-sans text-sm leading-7 text-muted">
                 {paragraph}
               </p>
             ))}
           </div>
-        </div>
 
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-          {metrics.slice(0, 4).map(metric => (
-            <div
-              key={metric.label}
-              className="rounded-sm border border-accent/35 bg-surface/55 px-4 py-5 text-center shadow-[0_0_24px_rgba(0,212,255,0.05)]"
-            >
-              <div className="font-mono text-2xl font-semibold text-accent sm:text-3xl">{metric.value}</div>
-              <div className="mt-2 min-h-8 font-mono text-[10px] uppercase leading-4 tracking-[0.12em] text-text/80">{metric.label}</div>
-            </div>
-          ))}
-        </div>
-
-        <div className="rounded-sm border border-border/70 bg-surface/35 p-5">
-          <p className="mb-4 font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-accent">Profile map</p>
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-3 md:grid-cols-3">
             {profilePillars.map(pillar => (
-              <div key={pillar.label} className="border-l border-accent/40 pl-4">
-                <h3 className="font-mono text-xs uppercase tracking-[0.15em] text-text">{pillar.label}</h3>
+              <div key={pillar.label} className="border-l border-accent/35 pl-4">
+                <h3 className="font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-text">
+                  {pillar.label}
+                </h3>
                 <p className="mt-2 font-sans text-sm leading-6 text-muted">{pillar.text}</p>
               </div>
             ))}
           </div>
         </div>
 
-        <div className="rounded-sm border border-border/70 bg-surface/35 p-5">
-          <p className="mb-3 font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-accent">Tech stack highlights</p>
-          <div className="flex flex-wrap gap-2">
-            {techHighlights.map(tech => (
-              <SignalTag key={tech}>{tech}</SignalTag>
-            ))}
-          </div>
-        </div>
+        <ProfilePortrait />
       </div>
 
-      <div className="grid gap-5">
-        <div className="relative min-h-[360px] overflow-hidden rounded-sm border border-border/70 bg-surface/35">
-          <HumanSignalGraphic />
-        </div>
-        <div className="rounded-sm border border-border/70 bg-surface/35 p-5">
-          <p className="mb-4 font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-accent">Languages</p>
-          <div className="grid gap-3 sm:grid-cols-3 xl:grid-cols-1">
-            {['Spanish - Native', 'English - Fluent', 'German - B1+'].map(language => (
-              <div key={language} className="rounded-sm border border-border/70 bg-bg/35 px-3 py-2 font-mono text-xs text-text/85">
-                {language}
-              </div>
-            ))}
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        {metrics.slice(0, 4).map(metric => (
+          <div
+            key={metric.label}
+            className="rounded-sm border border-accent/35 bg-surface/45 px-4 py-5 text-center shadow-[0_0_24px_rgba(0,212,255,0.05)]"
+          >
+            <div className="font-mono text-2xl font-semibold text-accent sm:text-3xl">{metric.value}</div>
+            <div className="mt-2 min-h-8 font-mono text-[10px] uppercase leading-4 tracking-[0.12em] text-text/80">
+              {metric.label}
+            </div>
           </div>
+        ))}
+      </div>
+
+      <div>
+        <p className="mb-3 font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-accent">
+          Tech stack highlights
+        </p>
+        <div className="flex flex-wrap gap-2">
+          {techHighlights.map(tech => (
+            <SignalTag key={tech}>{tech}</SignalTag>
+          ))}
         </div>
       </div>
     </div>
   )
 }
 
-function HumanSignalGraphic() {
+function ProfilePortrait() {
   return (
-    <div className="absolute inset-0">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_63%_32%,rgba(0,212,255,0.18),transparent_30%),radial-gradient(circle_at_25%_70%,rgba(124,106,255,0.13),transparent_34%)]" />
-      <svg className="absolute inset-0 h-full w-full" viewBox="0 0 560 380" aria-hidden="true">
-        <defs>
-          <linearGradient id="faceLine" x1="0" x2="1" y1="0" y2="1">
-            <stop offset="0%" stopColor="#00d4ff" stopOpacity="0.95" />
-            <stop offset="100%" stopColor="#7c6aff" stopOpacity="0.45" />
-          </linearGradient>
-        </defs>
-        <path d="M324 71c-43 9-70 45-69 91 1 36 18 72 45 93 4 4 6 10 5 16l-10 54h89l-7-52c-1-7 2-14 8-18 32-21 49-60 44-102-6-55-45-92-105-82Z" fill="none" stroke="url(#faceLine)" strokeWidth="1.6" />
-        <path d="M298 135c24 4 50 4 80-1M297 162c18 2 39 3 65 0M301 190c18 4 42 4 62 0M318 116c-4 32-4 75 2 118" fill="none" stroke="#00d4ff" strokeOpacity="0.38" strokeWidth="1" />
-        {Array.from({ length: 64 }).map((_, index) => {
-          const x = 52 + ((index * 37) % 450)
-          const y = 42 + ((index * 67) % 280)
-          return <circle key={index} cx={x} cy={y} r={index % 5 === 0 ? 1.8 : 1.1} fill="#00d4ff" opacity={index % 3 === 0 ? 0.65 : 0.28} />
-        })}
-        <path d="M74 196c88-28 145-18 211 20 70 40 121 43 202 10M63 105c116 45 177 42 250-3 54-33 97-37 164-20" fill="none" stroke="#00d4ff" strokeOpacity="0.17" strokeWidth="1" />
-      </svg>
-      <div className="absolute bottom-5 left-5 right-5 flex items-center justify-between border-t border-border/70 pt-4 font-mono text-[10px] uppercase tracking-[0.18em] text-muted">
-        <span>Signal Map</span>
+    <div className="profile-portrait relative min-h-[280px] overflow-hidden rounded-sm border border-border/75 bg-surface/35 sm:min-h-[340px]">
+      <Image
+        src="/images/profile-image.jpg"
+        alt="Sebastian Laverde"
+        fill
+        sizes="(max-width: 1024px) 100vw, 420px"
+        className="object-cover object-center grayscale contrast-125 opacity-50 mix-blend-luminosity"
+        priority
+      />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_62%_34%,rgba(0,212,255,0.2),transparent_31%),linear-gradient(90deg,rgba(4,7,11,0.78),rgba(4,7,11,0.12)_45%,rgba(4,7,11,0.64))]" />
+      <div className="absolute inset-0 opacity-35 [background-image:linear-gradient(rgba(0,212,255,0.45)_1px,transparent_1px),linear-gradient(90deg,rgba(0,212,255,0.45)_1px,transparent_1px)] [background-size:28px_28px]" />
+      <div className="absolute inset-x-5 bottom-5 flex items-center justify-between border-t border-border/70 pt-4 font-mono text-[10px] uppercase tracking-[0.18em] text-muted">
+        <span>Human Signal</span>
         <span className="text-accent">Impact Driven</span>
       </div>
     </div>
@@ -645,163 +805,136 @@ function HumanSignalGraphic() {
 }
 
 function ExperiencePanel() {
-  return (
-    <div className="space-y-6">
-      {experience.map((item, index) => (
-        <article
-          key={item.id}
-          className="relative overflow-hidden rounded-sm border border-border/75 bg-surface/42 transition hover:border-accent/35 hover:bg-surface/62"
-        >
-          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-accent/70 via-transparent to-violet/50" />
-          <div className="grid gap-0 xl:grid-cols-[minmax(0,1fr)_320px]">
-            <div className="p-5 sm:p-6">
-              <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                <div className="min-w-0">
-                  <div className="mb-3 flex flex-wrap items-center gap-3">
-                    <span className="rounded-sm border border-accent/45 bg-accent/10 px-2 py-1 font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-accent">
-                      {String(index + 1).padStart(2, '0')}
-                    </span>
-                    <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted">{item.type}</span>
-                  </div>
-                  <h3 className="font-display text-3xl font-semibold leading-tight text-text lg:text-4xl">{item.company}</h3>
-                  <p className="mt-2 font-mono text-xs font-semibold uppercase tracking-[0.14em] text-accent">{item.role}</p>
-                </div>
-                <div className="shrink-0 font-mono text-[10px] uppercase leading-5 tracking-[0.16em] text-muted lg:text-right">
-                  <div className="text-text/80">{item.period}</div>
-                  <div>{item.location}</div>
-                </div>
-              </div>
-
-              <p className="mt-5 max-w-5xl font-sans text-lg leading-8 text-text/90">{item.headline}</p>
-              <p className="mt-4 max-w-5xl font-sans text-sm leading-7 text-muted">{item.context}</p>
-
-              <div className="mt-6 grid gap-4 lg:grid-cols-2">
-                {item.bullets.map(bullet => (
-                  <div key={bullet} className="flex gap-3 font-sans text-sm leading-6 text-muted">
-                    <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-accent/80 shadow-[0_0_12px_rgba(0,212,255,0.7)]" />
-                    <span>{bullet}</span>
-                  </div>
-                ))}
-              </div>
-
-              {item.systems.length > 0 && (
-                <div className="mt-6">
-                  <p className="mb-3 font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-accent">Systems built</p>
-                  <div className="grid gap-3 md:grid-cols-2">
-                    {item.systems.map(system => (
-                      <div key={system.title} className="rounded-sm border border-border/70 bg-bg/35 p-4">
-                        <h4 className="font-mono text-xs font-semibold uppercase tracking-[0.12em] text-text">{system.title}</h4>
-                        <p className="mt-2 font-sans text-sm leading-6 text-muted">{system.detail}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <aside className="border-t border-border/70 bg-bg/32 p-5 sm:p-6 xl:border-l xl:border-t-0">
-              <p className="mb-3 font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-accent">Technology</p>
-              <div className="flex flex-wrap gap-2">
-                {item.tags.map(tag => (
-                  <SignalTag key={tag}>{tag}</SignalTag>
-                ))}
-              </div>
-
-              {item.achievements.length > 0 && (
-                <div className="mt-6">
-                  <p className="mb-3 font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-accent">Evidence</p>
-                  <div className="space-y-3">
-                    {item.achievements.map(achievement => (
-                      <div key={achievement} className="rounded-sm border border-metric/25 bg-metric/5 px-3 py-2 font-mono text-[11px] leading-5 text-metric">
-                        -&gt; {achievement}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </aside>
-          </div>
-        </article>
-      ))}
-    </div>
-  )
-}
-
-function ProjectsPanel() {
-  return (
-    <div className="grid gap-4 md:grid-cols-2">
-      {projects.map((project, index) => (
-        <motion.article
-          key={project.id}
-          initial={false}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: index * 0.04, duration: 0.35 }}
-          className="group relative overflow-hidden rounded-sm border border-border/70 bg-surface/45 p-5 transition hover:-translate-y-1 hover:border-accent/45 hover:bg-surface/70"
-        >
-          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-accent/70 via-transparent to-violet/60 opacity-0 transition group-hover:opacity-100" />
-          <div className="flex items-center justify-between gap-4">
-            <span className="rounded-sm border border-accent/40 bg-accent/10 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.16em] text-accent">
-              {project.type}
-            </span>
-            <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted">{project.company}</span>
-          </div>
-          <h3 className="mt-4 font-display text-2xl font-semibold leading-tight text-text transition group-hover:text-accent">{project.title}</h3>
-          <p className="mt-3 font-sans text-sm leading-6 text-muted">{project.description}</p>
-          <div className="mt-5 border-t border-border/50 pt-4">
-            <div className="flex flex-wrap gap-2">
-              {project.architecture.map(tech => (
-                <SignalTag key={tech}>{tech}</SignalTag>
-              ))}
-            </div>
-            <p className="mt-4 font-mono text-xs leading-5 text-metric">
-              <span className="text-metric/70">-&gt;</span> {project.outcome}
-            </p>
-          </div>
-        </motion.article>
-      ))}
-    </div>
-  )
-}
-
-function SkillsPanel() {
-  const topStrengths = [
-    'Agentic AI & Multi-agent Systems',
-    'Advanced RAG & Hybrid Retrieval',
-    'LLM Infrastructure & Observability',
-    'Document Intelligence',
-    'GCP Production Deployment',
-    'Privacy-preserving ML',
-  ]
+  const [openId, setOpenId] = useState<string | null>(null)
 
   return (
-    <div className="space-y-6">
-      <div className="rounded-sm border border-border/70 bg-surface/40 p-5">
-        <p className="font-sans text-lg leading-8 text-text/90">
-          T-shaped profile: deep production experience in agentic systems and retrieval, with broad coverage across data, training, evaluation, deployment, monitoring, and cloud infrastructure.
-        </p>
-        <div className="mt-5 flex flex-wrap gap-2">
-          {topStrengths.map(strength => (
-            <SignalTag key={strength}>{strength}</SignalTag>
-          ))}
-        </div>
-      </div>
+    <div className="relative">
+      <div className="absolute bottom-4 left-[18px] top-4 hidden w-px bg-gradient-to-b from-accent/55 via-accent/28 to-transparent sm:block" />
+      <div className="space-y-4">
+        {experience.map((item, index) => {
+          const isOpen = openId === item.id
+          const contentId = `experience-panel-${item.id}`
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        {skills.map((domain) => {
-          const Icon = skillIconMap[domain.icon] || Brain
           return (
-            <article key={domain.domain} className="rounded-sm border border-border/70 bg-surface/42 p-5 transition hover:border-accent/35 hover:bg-surface/62">
-              <div className="mb-5 flex items-center gap-3 border-b border-border/60 pb-4">
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-accent/35 bg-accent/10 text-accent">
-                  <Icon size={15} />
-                </span>
-                <h3 className="font-mono text-xs font-semibold uppercase tracking-[0.16em] text-text">{domain.domain}</h3>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {domain.items.map(item => (
-                  <SignalTag key={item}>{item}</SignalTag>
-                ))}
-              </div>
+            <article
+              key={item.id}
+              className="relative overflow-hidden rounded-sm border border-border/75 bg-surface/40 transition hover:border-accent/40 hover:bg-surface/60 sm:ml-11"
+            >
+              <span className="absolute -left-[31px] top-7 hidden h-3 w-3 rounded-full border border-accent bg-bg shadow-[0_0_16px_rgba(0,212,255,0.7)] sm:block" />
+              <button
+                type="button"
+                aria-expanded={isOpen}
+                aria-controls={contentId}
+                onClick={() => setOpenId(current => (current === item.id ? null : item.id))}
+                className="group w-full p-4 text-left sm:p-5"
+              >
+                <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                  <div className="min-w-0">
+                    <div className="mb-3 flex flex-wrap items-center gap-3">
+                      <span className="rounded-sm border border-accent/45 bg-accent/10 px-2 py-1 font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-accent">
+                        {String(index + 1).padStart(2, '0')}
+                      </span>
+                      <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted">
+                        {item.type}
+                      </span>
+                      <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted">
+                        {item.period}
+                      </span>
+                    </div>
+                    <h3 className="font-display text-2xl font-semibold leading-tight text-text transition group-hover:text-accent sm:text-3xl">
+                      {item.company}
+                    </h3>
+                    <p className="mt-2 font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-accent">
+                      {item.role}
+                    </p>
+                    <p className="mt-3 max-w-3xl font-sans text-sm leading-6 text-muted">
+                      {item.headline}
+                    </p>
+                  </div>
+
+                  <div className="flex shrink-0 items-start justify-between gap-5 lg:block lg:text-right">
+                    <div className="font-mono text-[10px] uppercase leading-5 tracking-[0.16em] text-muted">
+                      <div>{item.location}</div>
+                      <div className="mt-2 flex flex-wrap gap-2 lg:max-w-[220px] lg:justify-end">
+                        {item.tags.slice(0, 4).map(tag => (
+                          <SignalTag key={tag}>{tag}</SignalTag>
+                        ))}
+                      </div>
+                    </div>
+                    <ChevronDown
+                      size={18}
+                      className={cn(
+                        'mt-1 text-accent transition group-hover:translate-y-0.5',
+                        isOpen && 'rotate-180',
+                      )}
+                    />
+                  </div>
+                </div>
+              </button>
+
+              <AnimatePresence initial={false}>
+                {isOpen && (
+                  <motion.div
+                    id={contentId}
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.32, ease: panelEase }}
+                    className="overflow-hidden"
+                  >
+                    <div className="border-t border-border/70 px-4 pb-5 pt-5 sm:px-5">
+                      <p className="max-w-4xl font-sans text-sm leading-7 text-muted">
+                        {item.context}
+                      </p>
+
+                      <div className="mt-5 grid gap-3 md:grid-cols-2">
+                        {item.bullets.map(bullet => (
+                          <div key={bullet} className="flex gap-3 font-sans text-sm leading-6 text-muted">
+                            <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-accent/80 shadow-[0_0_12px_rgba(0,212,255,0.7)]" />
+                            <span>{bullet}</span>
+                          </div>
+                        ))}
+                      </div>
+
+                      {item.systems.length > 0 && (
+                        <div className="mt-6">
+                          <p className="mb-3 font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-accent">
+                            Systems built
+                          </p>
+                          <div className="grid gap-3 md:grid-cols-2">
+                            {item.systems.map(system => (
+                              <div key={system.title} className="rounded-sm border border-border/70 bg-bg/35 p-4">
+                                <h4 className="font-mono text-xs font-semibold uppercase tracking-[0.12em] text-text">
+                                  {system.title}
+                                </h4>
+                                <p className="mt-2 font-sans text-sm leading-6 text-muted">{system.detail}</p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {item.achievements.length > 0 && (
+                        <div className="mt-6">
+                          <p className="mb-3 font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-accent">
+                            Evidence
+                          </p>
+                          <div className="grid gap-2 md:grid-cols-2">
+                            {item.achievements.map(achievement => (
+                              <div
+                                key={achievement}
+                                className="rounded-sm border border-metric/25 bg-metric/5 px-3 py-2 font-mono text-[11px] leading-5 text-metric"
+                              >
+                                -&gt; {achievement}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </article>
           )
         })}
@@ -810,19 +943,141 @@ function SkillsPanel() {
   )
 }
 
+function ProjectsPanel() {
+  const [showAll, setShowAll] = useState(false)
+  const visibleProjects = showAll ? projects : projects.slice(0, 4)
+
+  return (
+    <div className="space-y-7">
+      <div className="grid gap-5 md:grid-cols-2">
+        {visibleProjects.map((project, index) => {
+          const ProjectIcon = projectIcons[index % projectIcons.length]
+
+          return (
+            <motion.article
+              key={project.id}
+              initial={false}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.04, duration: 0.35, ease: panelEase }}
+              className="group relative overflow-hidden rounded-sm border border-border/70 bg-surface/45 p-5 transition hover:-translate-y-1 hover:border-accent/45 hover:bg-surface/70"
+            >
+              <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-accent/70 via-transparent to-violet/60 opacity-0 transition group-hover:opacity-100" />
+              <div className="flex items-start justify-between gap-4">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-accent/35 bg-accent/10 text-accent">
+                  <ProjectIcon size={15} />
+                </span>
+                <span className="rounded-sm border border-accent/40 bg-accent/10 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.16em] text-accent">
+                  {project.type}
+                </span>
+              </div>
+              <h3 className="mt-4 font-display text-xl font-semibold leading-tight text-text transition group-hover:text-accent sm:text-2xl">
+                {project.title}
+              </h3>
+              <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.16em] text-muted">
+                {project.company}
+              </p>
+              <p className="project-card-copy mt-3 font-sans text-sm leading-6 text-muted">
+                {project.description}
+              </p>
+              <div className="mt-5 border-t border-border/50 pt-4">
+                <div className="flex flex-wrap gap-2">
+                  {project.architecture.slice(0, 4).map(tech => (
+                    <SignalTag key={tech}>{tech}</SignalTag>
+                  ))}
+                </div>
+                <p className="mt-4 font-mono text-xs leading-5 text-metric">
+                  <span className="text-metric/70">-&gt;</span> {project.outcome}
+                </p>
+              </div>
+            </motion.article>
+          )
+        })}
+      </div>
+
+      <div className="flex justify-center">
+        <button
+          type="button"
+          onClick={() => setShowAll(value => !value)}
+          className="group inline-flex items-center gap-2 rounded-sm px-3 py-2 font-mono text-[10px] font-semibold uppercase tracking-[0.2em] text-accent transition hover:bg-accent/10"
+        >
+          {showAll ? 'Show featured projects' : 'View all projects'}
+          <ArrowRight size={13} className={cn('transition group-hover:translate-x-0.5', showAll && 'rotate-180')} />
+        </button>
+      </div>
+    </div>
+  )
+}
+
+function SkillsPanel() {
+  return (
+    <div className="space-y-8">
+      <div className="grid gap-7 lg:grid-cols-3">
+        {skillDashboard.map(column => (
+          <article key={column.label} className="rounded-sm border border-border/70 bg-surface/40 p-5">
+            <div className="mb-5 flex items-center gap-3">
+              <span className="flex h-8 w-8 items-center justify-center rounded-full border border-accent/35 bg-accent/10 text-accent">
+                <column.Icon size={15} />
+              </span>
+              <h3 className="font-mono text-[11px] font-semibold uppercase tracking-[0.2em] text-accent">
+                {column.label}
+              </h3>
+            </div>
+            <div className="space-y-4">
+              {column.skills.map(skill => (
+                <div key={skill.name}>
+                  <div className="mb-2 flex items-center justify-between gap-3 font-mono text-[11px] text-text/85">
+                    <span>{skill.name}</span>
+                    <span className="text-muted">{skill.level}</span>
+                  </div>
+                  <div className="h-px w-full bg-border">
+                    <div
+                      className="skill-bar h-px bg-accent shadow-[0_0_12px_rgba(0,212,255,0.7)]"
+                      style={{ width: `${skill.level}%` }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </article>
+        ))}
+      </div>
+
+      <div>
+        <p className="mb-3 font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-accent">
+          Core strengths
+        </p>
+        <div className="flex flex-wrap gap-2">
+          {topStrengths.map(strength => (
+            <SignalTag key={strength}>{strength}</SignalTag>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function PublicationsPanel() {
   return (
-    <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_420px]">
+    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start">
       <div className="space-y-3">
         {publications.map(publication => (
-          <article key={publication.title} className="group rounded-sm border border-border/70 bg-surface/45 p-5 transition hover:border-accent/35">
-            <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
+          <article
+            key={publication.title}
+            className="group rounded-sm border border-border/70 bg-surface/45 p-5 transition hover:border-accent/35 hover:bg-surface/60"
+          >
+            <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
               <div className="flex gap-4">
                 <BookOpen className="mt-1 h-5 w-5 shrink-0 text-accent" />
                 <div>
-                  <p className="font-sans text-xs leading-5 text-muted">{publication.authors} ({publication.year})</p>
-                  <h3 className="mt-2 font-display text-xl font-medium leading-tight text-text transition group-hover:text-accent">{publication.title}</h3>
-                  <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.18em] text-muted">{publication.venue}</p>
+                  <p className="font-sans text-xs leading-5 text-muted">
+                    {publication.authors} ({publication.year})
+                  </p>
+                  <h3 className="mt-2 font-display text-xl font-medium leading-tight text-text transition group-hover:text-accent">
+                    {publication.title}
+                  </h3>
+                  <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.18em] text-muted">
+                    {publication.venue}
+                  </p>
                 </div>
               </div>
 
@@ -843,12 +1098,16 @@ function PublicationsPanel() {
       </div>
 
       <aside className="rounded-sm border border-border/70 bg-surface/42 p-5">
-        <p className="mb-4 font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-accent">Education & learning</p>
+        <p className="mb-4 font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-accent">
+          Education & learning
+        </p>
         <div className="space-y-4">
           {education.map(item => (
             <div key={`${item.degree}-${item.year}`} className="border-l border-accent/35 pl-4">
-              <h3 className="font-display text-xl font-semibold leading-tight text-text">{item.degree}</h3>
-              <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.16em] text-accent">{item.year}</p>
+              <h3 className="font-display text-lg font-semibold leading-tight text-text">{item.degree}</h3>
+              <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.16em] text-accent">
+                {item.year}
+              </p>
               <p className="mt-2 font-sans text-sm leading-6 text-muted">{item.institution}</p>
               <p className="mt-2 font-sans text-sm leading-6 text-muted">{item.focus}</p>
             </div>
@@ -856,7 +1115,9 @@ function PublicationsPanel() {
         </div>
 
         <div className="mt-6 border-t border-border/70 pt-5">
-          <p className="mb-3 font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-accent">Community</p>
+          <p className="mb-3 font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-accent">
+            Community
+          </p>
           <div className="space-y-3 font-sans text-sm leading-6 text-muted">
             <p>Mentored the Python4AI webinar series as part of the Renewable Africa academy program.</p>
             <p>Participated as ML Engineer in three AI-for-good projects delivering working prototypes for social challenges.</p>
@@ -868,53 +1129,47 @@ function PublicationsPanel() {
 }
 
 function ContactPanel() {
+  const subject = encodeURIComponent('Portfolio inquiry')
+  const body = encodeURIComponent(
+    "Hi Sebastian,\n\nI saw your portfolio and would like to connect about an AI/ML opportunity.\n\nBest,\n",
+  )
+  const mailto = `mailto:${meta.email}?subject=${subject}&body=${body}`
+
   return (
-    <div className="grid gap-10 lg:grid-cols-[0.75fr_1.25fr] lg:items-start">
+    <div className="grid gap-8 lg:grid-cols-[0.8fr_1fr] lg:items-center">
       <div className="space-y-5">
         <ContactLine Icon={Mail} label={meta.email} href={`mailto:${meta.email}`} />
         <ContactLine Icon={MapPin} label={meta.location} />
         <ContactLine Icon={Globe2} label="Open to remote opportunities" />
-        <div className="flex gap-3 pt-4">
-          <a href={meta.linkedin} target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="icon-button"><LinkedinIcon size={17} /></a>
-          <a href={meta.github} target="_blank" rel="noopener noreferrer" aria-label="GitHub" className="icon-button"><GithubIcon size={17} /></a>
-          <a href={meta.huggingface} target="_blank" rel="noopener noreferrer" aria-label="Hugging Face" className="icon-button"><Globe2 size={17} /></a>
+        <div className="flex flex-wrap gap-3 pt-4">
+          <a href={meta.linkedin} target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="icon-button">
+            <LinkedinIcon size={17} />
+          </a>
+          <a href={meta.github} target="_blank" rel="noopener noreferrer" aria-label="GitHub" className="icon-button">
+            <GithubIcon size={17} />
+          </a>
+          <a href={meta.huggingface} target="_blank" rel="noopener noreferrer" aria-label="Hugging Face" className="icon-button">
+            <Globe2 size={17} />
+          </a>
+          <a href={meta.cvPath} download aria-label="Download CV" className="icon-button">
+            <Download size={17} />
+          </a>
         </div>
       </div>
 
-      <ContactForm />
-    </div>
-  )
-}
-
-function ContactForm() {
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    const form = event.currentTarget
-    const formData = new FormData(form)
-    const name = String(formData.get('name') || '')
-    const email = String(formData.get('email') || '')
-    const subject = String(formData.get('subject') || 'Portfolio inquiry')
-    const message = String(formData.get('message') || '')
-    const body = encodeURIComponent(`Name: ${name}\nEmail: ${email}\n\n${message}`)
-    window.location.href = `mailto:${meta.email}?subject=${encodeURIComponent(subject)}&body=${body}`
-  }
-
-  return (
-    <form onSubmit={handleSubmit} className="grid gap-3">
-      <div className="grid gap-3 sm:grid-cols-2">
-        <input className="field" name="name" placeholder="Your Name" aria-label="Your name" />
-        <input className="field" name="email" type="email" placeholder="Your Email" aria-label="Your email" />
+      <div className="rounded-sm border border-border/75 bg-surface/40 p-5 sm:p-6">
+        <p className="max-w-lg font-sans text-lg leading-8 text-text/90">
+          For senior ML, agentic AI, and LLM infrastructure conversations, open a draft in your preferred email app.
+        </p>
+        <a
+          href={mailto}
+          className="mt-6 inline-flex h-11 items-center gap-2 rounded-sm border border-accent bg-accent px-5 font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-bg transition hover:-translate-y-0.5 hover:shadow-[0_0_28px_rgba(0,212,255,0.35)]"
+        >
+          Send Message
+          <ArrowRight size={13} />
+        </a>
       </div>
-      <input className="field" name="subject" placeholder="Subject" aria-label="Subject" />
-      <textarea className="field min-h-36 resize-none" name="message" placeholder="Message" aria-label="Message" />
-      <button
-        type="submit"
-        className="mt-2 inline-flex h-10 w-fit items-center gap-2 rounded-sm border border-accent bg-accent px-5 font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-bg transition hover:-translate-y-0.5 hover:shadow-[0_0_28px_rgba(0,212,255,0.35)]"
-      >
-        Send Message
-        <Send size={13} />
-      </button>
-    </form>
+    </div>
   )
 }
 
@@ -928,9 +1183,9 @@ function ContactLine({
   href?: string
 }) {
   const content = (
-    <span className="inline-flex items-center gap-3 font-sans text-sm text-text/85">
-      <Icon size={15} className="text-accent" />
-      {label}
+    <span className="inline-flex min-w-0 items-center gap-3 font-sans text-sm text-text/85">
+      <Icon size={15} className="shrink-0 text-accent" />
+      <span className="break-words">{label}</span>
     </span>
   )
 
