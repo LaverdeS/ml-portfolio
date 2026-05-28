@@ -20,6 +20,7 @@ import {
   Layers,
   Mail,
   MapPin,
+  Phone,
   Settings,
   User,
   Volume2,
@@ -29,7 +30,7 @@ import {
 import { education, experience, meta, metrics, projects, publications } from '@/data/portfolio'
 import { cn } from '@/lib/utils'
 
-type SectionId = 'about' | 'experience' | 'projects' | 'skills' | 'publications' | 'contact'
+type SectionId = 'about' | 'experience' | 'projects' | 'skills' | 'academics' | 'contact'
 type ViewId = SectionId | 'home'
 type SoundName = 'hover' | 'click'
 
@@ -67,11 +68,11 @@ const sectionNodes: SectionNode[] = [
     angle: 60,
   },
   {
-    id: 'publications',
-    label: 'Publications',
+    id: 'academics',
+    label: 'Academics',
     number: '05',
-    eyebrow: 'Publications',
-    title: 'Research signal and technical writing.',
+    eyebrow: 'Academics',
+    title: 'Education, learning, and research signal.',
     Icon: BookOpen,
     angle: 120,
   },
@@ -140,47 +141,79 @@ const profilePillars = [
 ]
 
 const topStrengths = [
-  'System Design',
-  'Automation',
-  'Data Storytelling',
-  'Problem Solving',
-  'Research',
-  'MLOps',
+  'Agentic Architecture',
+  'Hybrid RAG',
+  'Document Intelligence',
+  'Production Observability',
+  'GCP Deployment',
+  'Async Python',
+  'Evaluation Loops',
+  'Multi-Tenant Systems',
 ]
 
 const skillDashboard = [
   {
-    label: 'AI / ML',
+    label: 'Agentic AI',
     Icon: Brain,
     skills: [
-      { name: 'Python', level: 96 },
-      { name: 'PyTorch', level: 90 },
-      { name: 'Scikit-learn', level: 86 },
-      { name: 'LangChain', level: 90 },
-      { name: 'Transformers', level: 84 },
+      { name: 'Multi-agent architecture', level: 95 },
+      { name: 'LangGraph workflows', level: 92 },
+      { name: 'ReAct + tool calling', level: 92 },
+      { name: 'A2A protocol design', level: 90 },
+      { name: 'LangChain / LlamaIndex', level: 88 },
+      { name: 'MCP integration patterns', level: 82 },
     ],
   },
   {
-    label: 'Data / RAG',
+    label: 'RAG / Document AI',
     Icon: Database,
     skills: [
-      { name: 'SQL', level: 92 },
-      { name: 'Pandas', level: 90 },
-      { name: 'Hybrid RAG', level: 92 },
-      { name: 'Qdrant', level: 88 },
-      { name: 'Power BI', level: 78 },
+      { name: 'Hybrid RAG pipelines', level: 94 },
+      { name: 'Qdrant + RRF fusion', level: 90 },
+      { name: 'SPLADE++ sparse retrieval', level: 88 },
+      { name: 'Document parsing + OCR', level: 92 },
+      { name: 'Chunking + retrieval eval', level: 88 },
+      { name: 'Embeddings + reranking', level: 88 },
     ],
   },
   {
-    label: 'Dev / Ops',
+    label: 'LLM / VLM',
+    Icon: Layers,
+    skills: [
+      { name: 'Python ML engineering', level: 96 },
+      { name: 'PyTorch / Transformers', level: 90 },
+      { name: 'Donut VLM fine-tuning', level: 88 },
+      { name: 'Prompting + LLM eval', level: 88 },
+      { name: 'Vertex AI / Gemini', level: 86 },
+      { name: 'LoRA / QLoRA', level: 82 },
+    ],
+  },
+  {
+    label: 'Production AI',
     Icon: Settings,
     skills: [
-      { name: 'Docker', level: 90 },
-      { name: 'GCP Cloud Run', level: 88 },
-      { name: 'FastAPI', level: 90 },
-      { name: 'Git', level: 86 },
-      { name: 'Linux', level: 82 },
+      { name: 'FastAPI services', level: 92 },
+      { name: 'Dockerized deployment', level: 90 },
+      { name: 'GCP Cloud Run / Vertex', level: 88 },
+      { name: 'OpenTelemetry / Traceloop', level: 86 },
+      { name: 'Cloud Build CI/CD', level: 84 },
+      { name: 'Firestore / Storage / IAM', level: 84 },
     ],
+  },
+]
+
+const skillScoreLegend = [
+  {
+    range: '90-100',
+    meaning: 'Production ownership: designed, shipped, debugged, and improved in real systems.',
+  },
+  {
+    range: '80-89',
+    meaning: 'Strong applied depth: used hands-on in projects, research, or platform delivery.',
+  },
+  {
+    range: '70-79',
+    meaning: 'Working fluency: relevant supporting capability with practical project exposure.',
   },
 ]
 
@@ -188,9 +221,9 @@ const sectionWidthClass: Record<SectionId, string> = {
   about: 'max-w-[1120px]',
   experience: 'max-w-[980px]',
   projects: 'max-w-[980px]',
-  skills: 'max-w-[1040px]',
-  publications: 'max-w-[1060px]',
-  contact: 'max-w-[980px]',
+  skills: 'max-w-[980px]',
+  academics: 'max-w-[1100px]',
+  contact: 'max-w-[860px]',
 }
 
 const panelEase: [number, number, number, number] = [0.16, 1, 0.3, 1]
@@ -262,7 +295,7 @@ export default function PortfolioExperience() {
     function syncHash() {
       const hash = window.location.hash.replace('#', '')
       const view = new URLSearchParams(window.location.search).get('view') || ''
-      setActiveSection(isSectionId(hash) ? hash : isSectionId(view) ? view : 'home')
+      setActiveSection(normalizeSectionId(hash) ?? normalizeSectionId(view) ?? 'home')
     }
 
     syncHash()
@@ -354,6 +387,14 @@ function isSectionId(value: string): value is SectionId {
   return sectionNodes.some(section => section.id === value)
 }
 
+function normalizeSectionId(value: string): SectionId | null {
+  if (value === 'publications') {
+    return 'academics'
+  }
+
+  return isSectionId(value) ? value : null
+}
+
 function SceneBackdrop() {
   return (
     <div className="pointer-events-none fixed inset-0 overflow-hidden">
@@ -375,7 +416,7 @@ function TopLinks({
   const socials = [
     { label: 'LinkedIn', href: meta.linkedin, Icon: LinkedinIcon },
     { label: 'GitHub', href: meta.github, Icon: GithubIcon },
-    { label: 'Email', href: `mailto:${meta.email}`, Icon: Mail },
+    { label: 'Hugging Face', href: meta.huggingface, Icon: HuggingFaceIcon },
   ]
   const SoundIcon = soundMuted ? VolumeX : Volume2
 
@@ -396,8 +437,8 @@ function TopLinks({
         <a
           key={label}
           href={href}
-          target={label === 'Email' ? undefined : '_blank'}
-          rel={label === 'Email' ? undefined : 'noopener noreferrer'}
+          target="_blank"
+          rel="noopener noreferrer"
           aria-label={label}
           title={label}
           className="rounded-sm p-1.5 text-text/80 transition hover:bg-accent/10 hover:text-accent"
@@ -429,12 +470,12 @@ function HomeView({
       <div className="home-orbit-stage relative flex min-h-[min(780px,calc(100vh-4rem))] w-full max-w-[1180px] flex-col items-center justify-center">
         <OrbitSystem />
 
-        <div className="relative z-20 flex w-full max-w-[min(42rem,100%)] flex-col items-center text-center">
+        <div className="home-hero relative z-20 flex w-full max-w-[min(42rem,100%)] flex-col items-center text-center">
           <motion.p
             initial={false}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.08, duration: 0.45 }}
-            className="mb-4 font-mono text-[10px] font-semibold uppercase tracking-[0.35em] text-accent"
+            className="home-hero-kicker mb-4 font-mono text-[10px] font-semibold uppercase tracking-[0.35em] text-accent"
           >
             &lt; ml_engineer /&gt;
           </motion.p>
@@ -443,7 +484,7 @@ function HomeView({
             initial={false}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             transition={{ delay: 0.16, duration: 0.7, ease: panelEase }}
-            className="w-full font-display text-[clamp(4.2rem,18vw,9.8rem)] font-bold leading-[0.84] tracking-normal text-text sm:text-[clamp(5.6rem,10vw,10rem)]"
+            className="home-hero-title w-full font-display text-[clamp(4.2rem,18vw,9.8rem)] font-bold leading-[0.84] tracking-normal text-text sm:text-[clamp(5.6rem,10vw,10rem)]"
           >
             <span className="block text-[0.58em] font-normal text-[#788399]">Sebastian</span>
             Laverde
@@ -453,7 +494,7 @@ function HomeView({
             initial={false}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.28, duration: 0.45 }}
-            className="mt-5 flex min-h-7 flex-wrap items-center justify-center gap-2 font-mono text-[11px] uppercase tracking-[0.2em] text-text sm:text-sm sm:tracking-[0.24em]"
+            className="home-hero-subtitle mt-5 flex min-h-7 flex-wrap items-center justify-center gap-2 font-mono text-[11px] uppercase tracking-[0.2em] text-text sm:text-sm sm:tracking-[0.24em]"
           >
             <span>AI & Data</span>
             <span className="text-accent">.</span>
@@ -464,7 +505,7 @@ function HomeView({
             initial={false}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.38, duration: 0.45 }}
-            className="mt-5 w-full max-w-[34rem] border border-border/70 bg-surface/35 px-4 py-3 font-mono text-[10px] leading-6 text-muted shadow-[0_0_38px_rgba(0,212,255,0.05)] backdrop-blur sm:px-6 sm:text-[11px]"
+            className="home-hero-copy mt-5 w-full max-w-[34rem] border border-border/70 bg-surface/35 px-4 py-3 font-mono text-[10px] leading-6 text-muted shadow-[0_0_38px_rgba(0,212,255,0.05)] backdrop-blur sm:px-6 sm:text-[11px]"
           >
             Building intelligent systems at the intersection of data, models, and real-world impact.
             <span className="ml-1 inline-block h-4 w-px translate-y-1 bg-accent animate-blink" />
@@ -474,7 +515,7 @@ function HomeView({
             initial={false}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.48, duration: 0.45 }}
-            className="mt-6 flex flex-wrap items-center justify-center gap-3"
+            className="home-hero-actions mt-6 flex flex-wrap items-center justify-center gap-3"
           >
             <button
               type="button"
@@ -619,7 +660,7 @@ function SectionShell({
                     {activeSection === 'experience' && <ExperiencePanel />}
                     {activeSection === 'projects' && <ProjectsPanel />}
                     {activeSection === 'skills' && <SkillsPanel />}
-                    {activeSection === 'publications' && <PublicationsPanel />}
+                    {activeSection === 'academics' && <AcademicsPanel />}
                     {activeSection === 'contact' && <ContactPanel />}
                   </motion.div>
                 </AnimatePresence>
@@ -636,15 +677,23 @@ function SectionHeading({ section }: { section: SectionNode }) {
   const Icon = section.Icon
 
   return (
-    <div className="mb-9 flex items-start gap-4 sm:mb-11">
+    <div
+      className={cn(
+        'mb-9 flex items-start gap-4 sm:mb-11',
+        section.id === 'contact' && 'mx-auto w-full max-w-[860px] justify-center text-center',
+      )}
+    >
       <span className="mt-1 hidden h-10 w-10 shrink-0 items-center justify-center rounded-full border border-accent/45 bg-accent/10 text-accent shadow-[0_0_24px_rgba(0,212,255,0.16)] sm:flex lg:hidden">
         <Icon size={17} />
       </span>
-      <div className="min-w-0">
+      <div className={cn('min-w-0', section.id === 'contact' && 'mx-auto')}>
         <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.24em] text-accent">
           {section.eyebrow}
         </p>
-        <h2 className="mt-3 max-w-3xl text-balance font-display text-3xl font-normal leading-[1.08] text-text sm:text-4xl lg:text-[2.65rem]">
+        <h2 className={cn(
+          'mt-3 max-w-3xl text-balance font-display text-3xl font-normal leading-[1.08] text-text sm:text-4xl lg:text-[2.65rem]',
+          section.id === 'contact' && 'mx-auto max-w-[860px]',
+        )}>
           {section.title}
         </h2>
       </div>
@@ -726,13 +775,13 @@ function ContextRail({
 
 function AboutPanel() {
   return (
-    <div className="space-y-8">
-      <div className="grid gap-8 lg:grid-cols-[minmax(0,0.88fr)_minmax(320px,0.72fr)] lg:items-center">
-        <div className="space-y-5">
+    <div className="about-panel space-y-12 lg:space-y-14">
+      <div className="about-intro-grid grid gap-10 lg:grid-cols-[minmax(0,0.88fr)_minmax(320px,0.72fr)] lg:items-center">
+        <div className="about-copy space-y-8">
           <p className="max-w-xl font-sans text-base leading-7 text-text/90 sm:text-lg">
             {aboutParagraphs[0]}
           </p>
-          <div className="grid gap-5 sm:grid-cols-2">
+          <div className="about-secondary-copy grid gap-7 sm:grid-cols-2">
             {aboutParagraphs.slice(1).map(paragraph => (
               <p key={paragraph} className="font-sans text-sm leading-7 text-muted">
                 {paragraph}
@@ -740,7 +789,7 @@ function AboutPanel() {
             ))}
           </div>
 
-          <div className="grid gap-3 md:grid-cols-3">
+          <div className="about-pillar-grid grid gap-6 pt-3 md:grid-cols-3">
             {profilePillars.map(pillar => (
               <div key={pillar.label} className="border-l border-accent/35 pl-4">
                 <h3 className="font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-text">
@@ -755,7 +804,7 @@ function AboutPanel() {
         <ProfilePortrait />
       </div>
 
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="about-metrics grid grid-cols-2 gap-3 lg:grid-cols-4">
         {metrics.slice(0, 4).map(metric => (
           <div
             key={metric.label}
@@ -808,9 +857,8 @@ function ExperiencePanel() {
   const [openId, setOpenId] = useState<string | null>(null)
 
   return (
-    <div className="relative">
-      <div className="absolute bottom-4 left-[18px] top-4 hidden w-px bg-gradient-to-b from-accent/55 via-accent/28 to-transparent sm:block" />
-      <div className="space-y-4">
+    <div>
+      <div className="experience-list space-y-5">
         {experience.map((item, index) => {
           const isOpen = openId === item.id
           const contentId = `experience-panel-${item.id}`
@@ -818,19 +866,18 @@ function ExperiencePanel() {
           return (
             <article
               key={item.id}
-              className="relative overflow-hidden rounded-sm border border-border/75 bg-surface/40 transition hover:border-accent/40 hover:bg-surface/60 sm:ml-11"
+              className="experience-card relative overflow-hidden rounded-sm border border-border/75 bg-surface/40 transition hover:border-accent/40 hover:bg-surface/60"
             >
-              <span className="absolute -left-[31px] top-7 hidden h-3 w-3 rounded-full border border-accent bg-bg shadow-[0_0_16px_rgba(0,212,255,0.7)] sm:block" />
               <button
                 type="button"
                 aria-expanded={isOpen}
                 aria-controls={contentId}
                 onClick={() => setOpenId(current => (current === item.id ? null : item.id))}
-                className="group w-full p-4 text-left sm:p-5"
+                className="experience-trigger group w-full p-5 text-left sm:p-7"
               >
-                <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
                   <div className="min-w-0">
-                    <div className="mb-3 flex flex-wrap items-center gap-3">
+                    <div className="mb-4 flex flex-wrap items-center gap-3">
                       <span className="rounded-sm border border-accent/45 bg-accent/10 px-2 py-1 font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-accent">
                         {String(index + 1).padStart(2, '0')}
                       </span>
@@ -852,7 +899,7 @@ function ExperiencePanel() {
                     </p>
                   </div>
 
-                  <div className="flex shrink-0 items-start justify-between gap-5 lg:block lg:text-right">
+                  <div className="flex shrink-0 items-start justify-between gap-6 lg:block lg:text-right">
                     <div className="font-mono text-[10px] uppercase leading-5 tracking-[0.16em] text-muted">
                       <div>{item.location}</div>
                       <div className="mt-2 flex flex-wrap gap-2 lg:max-w-[220px] lg:justify-end">
@@ -882,12 +929,12 @@ function ExperiencePanel() {
                     transition={{ duration: 0.32, ease: panelEase }}
                     className="overflow-hidden"
                   >
-                    <div className="border-t border-border/70 px-4 pb-5 pt-5 sm:px-5">
+                    <div className="experience-details border-t border-border/70 px-5 pb-7 pt-7 sm:px-7 sm:pb-8">
                       <p className="max-w-4xl font-sans text-sm leading-7 text-muted">
                         {item.context}
                       </p>
 
-                      <div className="mt-5 grid gap-3 md:grid-cols-2">
+                      <div className="experience-bullets mt-6 grid gap-4 md:grid-cols-2">
                         {item.bullets.map(bullet => (
                           <div key={bullet} className="flex gap-3 font-sans text-sm leading-6 text-muted">
                             <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-accent/80 shadow-[0_0_12px_rgba(0,212,255,0.7)]" />
@@ -897,13 +944,13 @@ function ExperiencePanel() {
                       </div>
 
                       {item.systems.length > 0 && (
-                        <div className="mt-6">
-                          <p className="mb-3 font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-accent">
+                        <div className="experience-detail-group mt-9">
+                          <p className="mb-4 font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-accent">
                             Systems built
                           </p>
-                          <div className="grid gap-3 md:grid-cols-2">
+                          <div className="grid gap-4 md:grid-cols-2">
                             {item.systems.map(system => (
-                              <div key={system.title} className="rounded-sm border border-border/70 bg-bg/35 p-4">
+                              <div key={system.title} className="experience-system-card rounded-sm border border-border/70 bg-bg/35 p-5">
                                 <h4 className="font-mono text-xs font-semibold uppercase tracking-[0.12em] text-text">
                                   {system.title}
                                 </h4>
@@ -915,11 +962,11 @@ function ExperiencePanel() {
                       )}
 
                       {item.achievements.length > 0 && (
-                        <div className="mt-6">
-                          <p className="mb-3 font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-accent">
+                        <div className="experience-detail-group mt-9">
+                          <p className="mb-4 font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-accent">
                             Evidence
                           </p>
-                          <div className="grid gap-2 md:grid-cols-2">
+                          <div className="grid gap-3 md:grid-cols-2">
                             {item.achievements.map(achievement => (
                               <div
                                 key={achievement}
@@ -1009,44 +1056,121 @@ function ProjectsPanel() {
 }
 
 function SkillsPanel() {
+  const [openSkillCategory, setOpenSkillCategory] = useState<string | null>(null)
+
   return (
-    <div className="space-y-8">
-      <div className="grid gap-7 lg:grid-cols-3">
+    <div className="skills-panel mx-auto w-full max-w-[980px] space-y-10">
+      <div className="skill-positioning mx-auto w-full max-w-[980px] border-l border-metric/35 pl-5">
+        <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-metric">
+          Positioning
+        </p>
+        <p className="mt-4 max-w-4xl font-sans text-lg leading-8 text-text/90">
+          Strongest signal: agentic systems, hybrid RAG, LLM infrastructure, document intelligence,
+          and production-grade Python/GCP delivery.
+        </p>
+      </div>
+
+      <div className="skill-score-model mx-auto w-full max-w-[980px] rounded-sm border border-border/70 bg-surface/35 p-6">
+        <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-accent">
+          Score model
+        </p>
+        <p className="mt-4 max-w-4xl font-sans text-sm leading-7 text-muted">
+          Scores indicate demonstrated depth from the CV: production ownership, repeated hands-on delivery,
+          and evidence across research or shipped systems. Higher scores reflect the strongest, most current
+          proof points.
+        </p>
+        <div className="mt-6 grid gap-4 lg:grid-cols-3">
+          {skillScoreLegend.map(item => (
+            <div key={item.range} className="border-l border-accent/35 pl-4">
+              <span className="font-mono text-sm font-semibold text-accent">{item.range}</span>
+              <p className="mt-2 font-sans text-sm leading-6 text-muted">{item.meaning}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="skill-dashboard-grid mx-auto grid w-full max-w-[980px] gap-4 md:grid-cols-2">
         {skillDashboard.map(column => (
-          <article key={column.label} className="rounded-sm border border-border/70 bg-surface/40 p-5">
-            <div className="mb-5 flex items-center gap-3">
-              <span className="flex h-8 w-8 items-center justify-center rounded-full border border-accent/35 bg-accent/10 text-accent">
-                <column.Icon size={15} />
+          <article key={column.label} className="skill-card overflow-hidden rounded-sm border border-border/70 p-0">
+            <button
+              type="button"
+              aria-expanded={openSkillCategory === column.label}
+              aria-controls={`skill-panel-${column.label.replaceAll(' ', '-').replaceAll('/', '').toLowerCase()}`}
+              onClick={() => setOpenSkillCategory(current => (current === column.label ? null : column.label))}
+              className="group flex w-full items-start justify-between gap-5 px-5 py-5 text-left sm:px-6"
+            >
+              <span className="flex min-w-0 items-center gap-4">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-accent/35 bg-accent/10 text-accent">
+                  <column.Icon size={17} />
+                </span>
+                <span>
+                  <span className="block font-mono text-xs font-semibold uppercase tracking-[0.2em] text-accent">
+                    {column.label}
+                  </span>
+                  <span className="mt-1 block font-sans text-sm text-muted">
+                    {column.skills.length} validated capabilities
+                  </span>
+                  {openSkillCategory !== column.label && (
+                    <span className="mt-3 flex flex-wrap gap-2">
+                      {column.skills.slice(0, 3).map(skill => (
+                        <span
+                          key={skill.name}
+                          className="rounded-sm border border-border/70 bg-bg/35 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.1em] text-muted"
+                        >
+                          {skill.name}
+                        </span>
+                      ))}
+                    </span>
+                  )}
+                </span>
               </span>
-              <h3 className="font-mono text-[11px] font-semibold uppercase tracking-[0.2em] text-accent">
-                {column.label}
-              </h3>
-            </div>
-            <div className="space-y-4">
-              {column.skills.map(skill => (
-                <div key={skill.name}>
-                  <div className="mb-2 flex items-center justify-between gap-3 font-mono text-[11px] text-text/85">
-                    <span>{skill.name}</span>
-                    <span className="text-muted">{skill.level}</span>
+              <ChevronDown
+                size={18}
+                className={cn(
+                  'shrink-0 text-accent transition group-hover:translate-y-0.5',
+                  openSkillCategory === column.label && 'rotate-180',
+                )}
+              />
+            </button>
+
+            <AnimatePresence initial={false}>
+              {openSkillCategory === column.label && (
+                <motion.div
+                  id={`skill-panel-${column.label.replaceAll(' ', '-').replaceAll('/', '').toLowerCase()}`}
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.32, ease: panelEase }}
+                  className="overflow-hidden"
+                >
+                  <div className="skill-list space-y-6 border-t border-border/70 px-5 py-5 sm:px-6">
+                    {column.skills.map(skill => (
+                      <div key={skill.name} className="skill-row">
+                        <div className="skill-row-content mb-2 flex items-center justify-between gap-4 font-mono text-[13px] text-text/90">
+                          <span>{skill.name}</span>
+                          <span className="text-metric/90">{skill.level}</span>
+                        </div>
+                        <div className="skill-bar-track h-1 bg-border">
+                          <div
+                            className="skill-bar h-1"
+                            style={{ width: `${skill.level}%` }}
+                          />
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                  <div className="h-px w-full bg-border">
-                    <div
-                      className="skill-bar h-px bg-accent shadow-[0_0_12px_rgba(0,212,255,0.7)]"
-                      style={{ width: `${skill.level}%` }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </article>
         ))}
       </div>
 
-      <div>
-        <p className="mb-3 font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-accent">
+      <div className="skills-core">
+        <p className="mb-5 font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-accent">
           Core strengths
         </p>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-3">
           {topStrengths.map(strength => (
             <SignalTag key={strength}>{strength}</SignalTag>
           ))}
@@ -1056,92 +1180,109 @@ function SkillsPanel() {
   )
 }
 
-function PublicationsPanel() {
+function AcademicsPanel() {
   return (
-    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start">
-      <div className="space-y-3">
-        {publications.map(publication => (
-          <article
-            key={publication.title}
-            className="group rounded-sm border border-border/70 bg-surface/45 p-5 transition hover:border-accent/35 hover:bg-surface/60"
-          >
-            <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
-              <div className="flex gap-4">
-                <BookOpen className="mt-1 h-5 w-5 shrink-0 text-accent" />
-                <div>
-                  <p className="font-sans text-xs leading-5 text-muted">
-                    {publication.authors} ({publication.year})
-                  </p>
-                  <h3 className="mt-2 font-display text-xl font-medium leading-tight text-text transition group-hover:text-accent">
-                    {publication.title}
+    <div className="academics-panel grid gap-8 lg:grid-cols-[minmax(0,0.95fr)_minmax(360px,0.75fr)] lg:items-start">
+      <div className="space-y-7">
+        <div className="rounded-sm border border-accent/30 bg-surface/45 p-7 shadow-[0_0_34px_rgba(0,212,255,0.04)]">
+          <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-accent">
+            Education & learning
+          </p>
+          <div className="academic-education-list mt-7 space-y-7">
+            {education.map((item, index) => (
+              <div
+                key={`${item.degree}-${item.year}`}
+                className={cn('academic-entry', index > 0 && 'border-t border-border/70 pt-7')}
+              >
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                  <h3 className="max-w-xl font-display text-2xl font-semibold leading-tight text-text">
+                    {item.degree}
                   </h3>
-                  <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.18em] text-muted">
-                    {publication.venue}
+                  <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-accent">
+                    {item.year}
                   </p>
                 </div>
+                <p className="mt-3 font-sans text-base leading-7 text-text/85">{item.institution}</p>
+                <p className="mt-3 font-sans text-sm leading-7 text-muted">{item.focus}</p>
               </div>
-
-              {publication.url && (
-                <a
-                  href={publication.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex h-8 shrink-0 items-center gap-2 rounded-sm border border-accent/40 bg-accent/10 px-3 font-mono text-[10px] uppercase tracking-[0.16em] text-accent transition hover:bg-accent hover:text-bg"
-                >
-                  View Paper
-                  <ExternalLink size={12} />
-                </a>
-              )}
-            </div>
-          </article>
-        ))}
-      </div>
-
-      <aside className="rounded-sm border border-border/70 bg-surface/42 p-5">
-        <p className="mb-4 font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-accent">
-          Education & learning
-        </p>
-        <div className="space-y-4">
-          {education.map(item => (
-            <div key={`${item.degree}-${item.year}`} className="border-l border-accent/35 pl-4">
-              <h3 className="font-display text-lg font-semibold leading-tight text-text">{item.degree}</h3>
-              <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.16em] text-accent">
-                {item.year}
-              </p>
-              <p className="mt-2 font-sans text-sm leading-6 text-muted">{item.institution}</p>
-              <p className="mt-2 font-sans text-sm leading-6 text-muted">{item.focus}</p>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
 
-        <div className="mt-6 border-t border-border/70 pt-5">
-          <p className="mb-3 font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-accent">
-            Community
+        <div className="rounded-sm border border-border/70 bg-bg/35 p-7">
+          <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-accent">
+            Community learning
           </p>
-          <div className="space-y-3 font-sans text-sm leading-6 text-muted">
+          <div className="mt-5 grid gap-5 font-sans text-sm leading-7 text-muted sm:grid-cols-2">
             <p>Mentored the Python4AI webinar series as part of the Renewable Africa academy program.</p>
             <p>Participated as ML Engineer in three AI-for-good projects delivering working prototypes for social challenges.</p>
           </div>
         </div>
+      </div>
+
+      <aside className="academic-publication-list">
+        <p className="mb-5 font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-accent">
+          Publications & writing
+        </p>
+        {publications.map(publication => (
+          <article
+            key={publication.title}
+            className="academic-publication-card group rounded-sm border border-border/70 bg-surface/45 p-6 transition hover:border-accent/35 hover:bg-surface/60"
+          >
+            <div className="flex gap-4">
+              <BookOpen className="mt-1 h-5 w-5 shrink-0 text-accent" />
+              <div>
+                <p className="font-sans text-xs leading-5 text-muted">
+                  {publication.authors} ({publication.year})
+                </p>
+                <h3 className="mt-2 font-display text-xl font-medium leading-tight text-text transition group-hover:text-accent">
+                  {publication.title}
+                </h3>
+                <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.18em] text-muted">
+                  {publication.venue}
+                </p>
+                {publication.url && (
+                  <a
+                    href={publication.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-4 inline-flex h-8 items-center gap-2 rounded-sm border border-accent/40 bg-accent/10 px-3 font-mono text-[10px] uppercase tracking-[0.16em] text-accent transition hover:bg-accent hover:text-bg"
+                  >
+                    View Paper
+                    <ExternalLink size={12} />
+                  </a>
+                )}
+              </div>
+            </div>
+          </article>
+        ))}
       </aside>
     </div>
   )
 }
 
 function ContactPanel() {
-  const subject = encodeURIComponent('Portfolio inquiry')
-  const body = encodeURIComponent(
-    "Hi Sebastian,\n\nI saw your portfolio and would like to connect about an AI/ML opportunity.\n\nBest,\n",
-  )
-  const mailto = `mailto:${meta.email}?subject=${subject}&body=${body}`
+  const phoneNumber = '+4915122798161'
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[0.8fr_1fr] lg:items-center">
-      <div className="space-y-5">
+    <div className="contact-panel-grid mx-auto w-full max-w-[860px] text-center">
+      <p className="mx-auto w-full max-w-[760px] text-center font-sans text-sm leading-7 text-muted sm:text-base">
+        For senior ML, agentic AI, and LLM infrastructure conversations, email me directly at{' '}
+        <span className="text-accent">{meta.email}</span>.
+      </p>
+
+      <div className="contact-lines mx-auto mt-8 grid gap-4 sm:grid-cols-2">
         <ContactLine Icon={Mail} label={meta.email} href={`mailto:${meta.email}`} />
+        <ContactLine Icon={Phone} label={phoneNumber} href={`tel:${phoneNumber}`} />
         <ContactLine Icon={MapPin} label={meta.location} />
         <ContactLine Icon={Globe2} label="Open to remote opportunities" />
-        <div className="flex flex-wrap gap-3 pt-4">
+      </div>
+
+      <div className="contact-profiles mt-10 border-t border-border/70 pt-7 text-center">
+        <p className="mb-5 font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-accent">
+          Profiles & CV
+        </p>
+        <div className="flex flex-wrap justify-center gap-4">
           <a href={meta.linkedin} target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="icon-button">
             <LinkedinIcon size={17} />
           </a>
@@ -1149,25 +1290,12 @@ function ContactPanel() {
             <GithubIcon size={17} />
           </a>
           <a href={meta.huggingface} target="_blank" rel="noopener noreferrer" aria-label="Hugging Face" className="icon-button">
-            <Globe2 size={17} />
+            <HuggingFaceIcon size={17} />
           </a>
           <a href={meta.cvPath} download aria-label="Download CV" className="icon-button">
             <Download size={17} />
           </a>
         </div>
-      </div>
-
-      <div className="rounded-sm border border-border/75 bg-surface/40 p-5 sm:p-6">
-        <p className="max-w-lg font-sans text-lg leading-8 text-text/90">
-          For senior ML, agentic AI, and LLM infrastructure conversations, open a draft in your preferred email app.
-        </p>
-        <a
-          href={mailto}
-          className="mt-6 inline-flex h-11 items-center gap-2 rounded-sm border border-accent bg-accent px-5 font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-bg transition hover:-translate-y-0.5 hover:shadow-[0_0_28px_rgba(0,212,255,0.35)]"
-        >
-          Send Message
-          <ArrowRight size={13} />
-        </a>
       </div>
     </div>
   )
@@ -1183,8 +1311,8 @@ function ContactLine({
   href?: string
 }) {
   const content = (
-    <span className="inline-flex min-w-0 items-center gap-3 font-sans text-sm text-text/85">
-      <Icon size={15} className="shrink-0 text-accent" />
+    <span className="contact-line-content flex w-full min-w-0 items-center justify-center gap-4 rounded-sm border border-border/70 bg-surface/35 p-4 text-center font-sans text-sm leading-6 text-text/85 transition hover:border-accent/35 hover:bg-surface/55 sm:text-base">
+      <Icon size={17} className="shrink-0 text-accent" />
       <span className="break-words">{label}</span>
     </span>
   )
@@ -1211,6 +1339,23 @@ function SignalTag({ children }: { children: string }) {
 type BrandIconProps = SVGProps<SVGSVGElement> & {
   size?: number
   strokeWidth?: number
+}
+
+type HuggingFaceIconProps = {
+  size?: number
+  strokeWidth?: number
+}
+
+function HuggingFaceIcon({ size = 18 }: HuggingFaceIconProps) {
+  return (
+    <span
+      aria-hidden="true"
+      className="hf-icon"
+      style={{ fontSize: `${size}px`, lineHeight: 1 }}
+    >
+      🤗
+    </span>
+  )
 }
 
 function GithubIcon({ size = 18, strokeWidth = 2, ...props }: BrandIconProps) {
