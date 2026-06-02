@@ -251,7 +251,24 @@ export const experience: ExperienceItem[] = [
   },
 ]
 
-export const projects = [
+export type ProjectLink = {
+  label: string
+  href: string
+  kind?: 'repo' | 'source'
+}
+
+export type ProjectItem = {
+  id: string
+  title: string
+  company: string
+  description: string
+  architecture: string[]
+  outcome: string
+  type: string
+  links?: ProjectLink[]
+}
+
+export const projects: ProjectItem[] = [
   {
     id: 'multi-agent-saas',
     title: 'Multi-Agent SaaS Platform',
@@ -311,6 +328,79 @@ export const projects = [
     architecture: ['VAE', 'PyTorch', 'Docker', 'TensorFlow'],
     outcome: 'Novel privacy-preserving NLP approach enabling downstream research without real patient data',
     type: 'Research',
+  },
+  {
+    id: 'multiagent-ecommerce',
+    title: 'Multi-Agent E-commerce Assistant',
+    company: 'GitHub / Open Source',
+    description:
+      'Production-ready FastAPI customer-service system with an LLM orchestrator, cancellation, tracking, and product-information agents, hybrid Redis memory, response caching, metrics, trace IDs, Docker, and test coverage.',
+    architecture: ['FastAPI', 'OpenAI', 'Redis', 'Pydantic', 'Docker'],
+    outcome: 'Context-aware multi-turn e-commerce support with routed agents and observable request flow',
+    type: 'Agentic AI',
+    links: [
+      {
+        label: 'GitHub',
+        href: 'https://github.com/laverdes-agents/multiagent-ecommerce',
+        kind: 'repo',
+      },
+    ],
+  },
+  {
+    id: 'racra',
+    title: 'RACRA Role-Aware Retrieval Agent',
+    company: 'GitHub / Open Source',
+    description:
+      'Role-aware contextual retrieval agent for Architects, Engineers, and Project Managers, combining routed RAG sources, Supabase project search, web insight scraping, unified document loading, FastAPI/SSE, Gradio UI, and Phoenix tracing.',
+    architecture: ['RAG', 'Supabase', 'FastAPI', 'SSE', 'Arize Phoenix'],
+    outcome: 'Role-specific retrieval and decision support across project knowledge sources',
+    type: 'RAG / Agents',
+    links: [
+      {
+        label: 'GitHub',
+        href: 'https://github.com/LaverdeS/Role-Aware-Contextual-Retrieval-AI',
+        kind: 'repo',
+      },
+    ],
+  },
+  {
+    id: 'eye-d-time-series',
+    title: 'Eye-D Time-Series Classification',
+    company: 'GitHub / Open Source',
+    description:
+      'Eye-tracking toolbox and use case for identifying users through gaze-shift and pupil-diameter patterns, with preprocessing, visualization, MAD/IQR outlier removal, LSTM and ROCKET-CNN classification, and feature-importance analysis.',
+    architecture: ['Python', 'Time-Series EDA', 'LSTM', 'ROCKET-CNN', 'SHAP'],
+    outcome: 'Security-style user identification framed around an eye-signature from multivariate signals',
+    type: 'Applied ML',
+    links: [
+      {
+        label: 'GitHub',
+        href: 'https://github.com/LaverdeS/Multivariate-Time-Series-Classification',
+        kind: 'repo',
+      },
+      {
+        label: 'Eye-D use case',
+        href: 'https://github.com/LaverdeS/Multivariate-Time-Series-Classification/tree/main/use-cases/eye-d',
+        kind: 'source',
+      },
+    ],
+  },
+  {
+    id: 'fin-scan-insight',
+    title: 'Multimodal Financial Report Analyzer',
+    company: 'GitHub / Open Source',
+    description:
+      'Gemini-powered financial document analyzer for PDFs or image directories, extracting text, tables, charts, metrics, strategic insights, and risks into generated Markdown and PDF reports.',
+    architecture: ['Gemini', 'Python', 'pdf2image', 'PIL', 'Markdown PDF'],
+    outcome: 'Automated financial report synthesis with smart and full-context analysis modes',
+    type: 'Document AI',
+    links: [
+      {
+        label: 'GitHub',
+        href: 'https://github.com/LaverdeS/fin-scan-insight',
+        kind: 'repo',
+      },
+    ],
   },
 ]
 

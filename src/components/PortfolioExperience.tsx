@@ -140,6 +140,21 @@ const profilePillars = [
   },
 ]
 
+const languages = [
+  {
+    name: 'Spanish',
+    level: 'Native speaker',
+  },
+  {
+    name: 'English',
+    level: 'Full professional proficiency',
+  },
+  {
+    name: 'German',
+    level: 'Limited working proficiency (B1+)',
+  },
+]
+
 const topStrengths = [
   'Agentic Architecture',
   'Hybrid RAG',
@@ -804,6 +819,29 @@ function AboutPanel() {
         <ProfilePortrait />
       </div>
 
+      <div className="about-language-strip rounded-sm border border-border/70 bg-surface/35 p-5 shadow-[0_0_28px_rgba(0,212,255,0.04)]">
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-accent">
+              Languages
+            </p>
+            <p className="mt-2 font-sans text-sm leading-6 text-muted">
+              Multilingual communication for international technical teams.
+            </p>
+          </div>
+          <div className="grid w-full gap-3 sm:grid-cols-3 lg:min-w-[520px]">
+            {languages.map(language => (
+              <div key={language.name} className="rounded-sm border border-border/70 bg-bg/35 px-4 py-3">
+                <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-text">
+                  {language.name}
+                </p>
+                <p className="mt-2 font-sans text-sm leading-6 text-muted">{language.level}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
       <div className="about-metrics grid grid-cols-2 gap-3 lg:grid-cols-4">
         {metrics.slice(0, 4).map(metric => (
           <div
@@ -1035,6 +1073,27 @@ function ProjectsPanel() {
                 <p className="mt-4 font-mono text-xs leading-5 text-metric">
                   <span className="text-metric/70">-&gt;</span> {project.outcome}
                 </p>
+                {project.links && project.links.length > 0 && (
+                  <div className="project-card-links mt-4 flex flex-wrap gap-2">
+                    {project.links.map(link => {
+                      const LinkIcon = link.kind === 'repo' ? GithubIcon : ExternalLink
+
+                      return (
+                        <a
+                          key={link.href}
+                          href={link.href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          aria-label={`Open ${project.title} ${link.label}`}
+                          className="inline-flex h-8 items-center gap-2 rounded-sm border border-accent/35 bg-accent/10 px-3 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-accent transition hover:border-accent hover:bg-accent hover:text-bg"
+                        >
+                          <LinkIcon size={12} />
+                          {link.label}
+                        </a>
+                      )
+                    })}
+                  </div>
+                )}
               </div>
             </motion.article>
           )
@@ -1267,8 +1326,8 @@ function ContactPanel() {
   return (
     <div className="contact-panel-grid mx-auto w-full max-w-[860px] text-center">
       <p className="mx-auto w-full max-w-[760px] text-center font-sans text-sm leading-7 text-muted sm:text-base">
-        For senior ML, agentic AI, and LLM infrastructure conversations, email me directly at{' '}
-        <span className="text-accent">{meta.email}</span>.
+        For senior ML, agentic AI, and LLM infrastructure conversations, reach out through
+        the channels below.
       </p>
 
       <div className="contact-lines mx-auto mt-8 grid gap-4 sm:grid-cols-2">
