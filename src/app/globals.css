@@ -183,6 +183,14 @@ textarea:focus-visible {
   row-gap: 1.6rem;
 }
 
+.about-language-strip {
+  margin-top: 2rem !important;
+}
+
+.about-language-strip + .about-metrics {
+  margin-top: 2rem !important;
+}
+
 .about-metrics {
   margin-top: 1.5rem;
 }
@@ -244,8 +252,12 @@ textarea:focus-visible {
   margin-top: 2.75rem !important;
 }
 
+.skill-score-model {
+  margin-top: 2rem !important;
+}
+
 .skills-core {
-  margin-top: 2.75rem !important;
+  margin-top: 2rem !important;
 }
 
 .skill-list {
@@ -305,6 +317,10 @@ textarea:focus-visible {
 
 .academic-entry + .academic-entry {
   padding-top: 1rem !important;
+}
+
+.academic-community-card {
+  margin-top: 1.75rem !important;
 }
 
 .academic-publication-card {
@@ -367,6 +383,11 @@ a:hover .hf-icon {
     margin-top: 2.25rem;
   }
 
+  .about-language-strip,
+  .about-language-strip + .about-metrics {
+    margin-top: 2rem !important;
+  }
+
   .experience-list {
     gap: 0;
   }
@@ -409,6 +430,10 @@ a:hover .hf-icon {
 
   .academic-entry + .academic-entry {
     padding-top: 1.1rem !important;
+  }
+
+  .academic-community-card {
+    margin-top: 2rem !important;
   }
 
   .section-stage {

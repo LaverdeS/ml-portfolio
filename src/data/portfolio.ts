@@ -11,6 +11,7 @@ export type ExperienceItem = {
   role: string
   period: string
   location: string
+  companyLocation: string
   type: string
   tags: string[]
   headline: string
@@ -49,7 +50,8 @@ export const experience: ExperienceItem[] = [
     company: 'Sapience AI Corporation',
     role: 'Fullstack AI Engineer',
     period: 'Nov 2025 - Apr 2026',
-    location: 'Remote (Germany)',
+    location: 'Remote - Leipzig, Germany',
+    companyLocation: 'Company: New York, United States',
     type: 'Industry',
     tags: ['LangGraph', 'GCP', 'Qdrant', 'Vertex AI', 'FastAPI', 'OpenTelemetry'],
     headline:
@@ -95,7 +97,8 @@ export const experience: ExperienceItem[] = [
     company: 'Unstructured Technologies',
     role: 'Data Scientist / ML Engineer',
     period: 'Jan 2022 - Dec 2024',
-    location: 'Remote',
+    location: 'Remote - Germany',
+    companyLocation: 'Company: Loomis, California, United States',
     type: 'Industry',
     tags: ['Donut', 'XGBoost', 'NLP', 'VLM', 'Document AI', 'PyTorch'],
     headline:
@@ -135,7 +138,8 @@ export const experience: ExperienceItem[] = [
     company: 'German Aerospace Centre (DLR)',
     role: 'Research Assistant, Deep Learning',
     period: 'Feb 2021 - Oct 2021',
-    location: 'Germany',
+    location: 'Remote - Weimar, Germany',
+    companyLocation: 'Site: Jena, Germany',
     type: 'Research',
     tags: ['VAE', 'Privacy NLP', 'Synthetic Data', 'Docker', 'PyTorch'],
     headline:
@@ -159,10 +163,11 @@ export const experience: ExperienceItem[] = [
   },
   {
     id: 'webis',
-    company: 'Webis Group, Bauhaus-Universitat Weimar',
+    company: 'Webis Group, Bauhaus-Universität Weimar',
     role: 'IR & Deep Learning Research Assistant',
     period: 'Oct 2018 - Apr 2022',
-    location: 'Weimar, Germany',
+    location: 'Hybrid - Weimar, Germany',
+    companyLocation: 'Group: Weimar, Germany',
     type: 'Research',
     tags: ['BERT', 'Zero-shot', 'Active Learning', 'Code Gen', 'Transformers'],
     headline:
@@ -194,7 +199,8 @@ export const experience: ExperienceItem[] = [
     company: 'Omdena - Collaborative AI Platform',
     role: 'ML Engineer & Community Builder',
     period: 'Oct 2018 - 2020',
-    location: 'Remote',
+    location: 'Remote - Global',
+    companyLocation: 'Company: New York, United States',
     type: 'Community',
     tags: ['Anomaly Detection', 'NLP', 'Social Good', 'Adversarial Training'],
     headline:
@@ -227,7 +233,8 @@ export const experience: ExperienceItem[] = [
     company: 'Data Analysis Consultant / Freelancer',
     role: 'Data Analyst & Automation Specialist',
     period: 'Nov 2012 - Oct 2017',
-    location: 'Bogota / Remote',
+    location: 'Hybrid - Bogotá, Colombia',
+    companyLocation: 'Client base: Bogotá, Colombia',
     type: 'Industry',
     tags: ['BI', 'Excel', 'Reporting', 'Automations', 'SQL'],
     headline: 'Automated business intelligence and reporting dashboards across client verticals.',
@@ -266,6 +273,29 @@ export type ProjectItem = {
   outcome: string
   type: string
   links?: ProjectLink[]
+}
+
+export type EducationLink = {
+  label: string
+  href: string
+}
+
+export type EducationItem = {
+  degree: string
+  institution: string
+  year: string
+  focus: string
+  detail?: string
+  links?: EducationLink[]
+}
+
+export type PublicationItem = {
+  title: string
+  authors: string
+  venue: string
+  year: number
+  url: string
+  linkLabel?: string
 }
 
 export const projects: ProjectItem[] = [
@@ -365,10 +395,10 @@ export const projects: ProjectItem[] = [
   },
   {
     id: 'eye-d-time-series',
-    title: 'Eye-D Time-Series Classification',
+    title: 'Multivariate-Time-Series-Classification',
     company: 'GitHub / Open Source',
     description:
-      'Eye-tracking toolbox and use case for identifying users through gaze-shift and pupil-diameter patterns, with preprocessing, visualization, MAD/IQR outlier removal, LSTM and ROCKET-CNN classification, and feature-importance analysis.',
+      'Open-source toolbox for multivariate time-series EDA, preprocessing, visualization, outlier removal, and classification, featuring the Eye-D use case for identifying users through gaze-shift and pupil-diameter patterns.',
     architecture: ['Python', 'Time-Series EDA', 'LSTM', 'ROCKET-CNN', 'SHAP'],
     outcome: 'Security-style user identification framed around an eye-signature from multivariate signals',
     type: 'Applied ML',
@@ -517,31 +547,50 @@ export const skills = [
   },
 ]
 
-export const publications = [
+export const publications: PublicationItem[] = [
   {
     title: 'Financial Report Chunking for Effective Retrieval Augmented Generation',
     authors: 'Jimeno Yepes A., You Y., Milczek J., Laverde S., Li L.',
     venue: 'arXiv:2402.05131',
     year: 2024,
     url: 'https://arxiv.org/abs/2402.05131',
+    linkLabel: 'View Paper',
+  },
+  {
+    title: 'Clinical NLP with Controlled Synthetic Medical Record Generation',
+    authors: 'Sebastian Laverde Alfonso',
+    venue: 'Master Thesis, Bauhaus-Universität Weimar / Webis',
+    year: 2022,
+    url: 'https://downloads-cf.webis.de/theses/papers/laverde-alfonso_2022.pdf',
+    linkLabel: 'View Thesis',
   },
   {
     title: 'Automatic Classification of Sexual Harassment Cases',
     authors: 'Sebastian Laverde, Red Dot Foundation (Safecity project)',
     venue: 'Omdena Technical Publication',
     year: 2019,
-    url: '',
+    url: 'https://medium.com/omdena/automatic-classification-of-sexual-harassment-cases-a5f8cc604ab9',
+    linkLabel: 'View Article',
   },
   {
     title: 'Marsi-anomaly Detection Through Deep Adversarial Training',
     authors: 'Sebastian Laverde, University of Bern / Omdena Project',
     venue: 'Omdena Technical Publication',
     year: 2019,
-    url: '',
+    url: 'https://medium.com/omdena/marsian-omaly-detection-through-deep-adversarial-training-4dbb10744ce8',
+    linkLabel: 'View Article',
+  },
+  {
+    title: "Shor's Quantum Algorithm and Quantum Cryptography Protocols",
+    authors: 'Sebastian Laverde Alfonso',
+    venue: "Bachelor's Thesis Abstract, Pontifical Xavierian University",
+    year: 2017,
+    url: 'https://www.linkedin.com/in/sebastian-laverde-alfonso/overlay/Education/392574812/treasury/?profileId=ACoAACFlqbUBydU-vnMrzaFbGcLTnbkTBTfoMo0',
+    linkLabel: 'View Abstract',
   },
 ]
 
-export const education = [
+export const education: EducationItem[] = [
   {
     degree: 'Agentic AI Pioneer Program',
     institution: 'Western State University & Analytics Vidhya',
@@ -550,14 +599,30 @@ export const education = [
   },
   {
     degree: 'MSc, Computer Science for Digital Media',
-    institution: 'Bauhaus-Universitat Weimar',
+    institution: 'Bauhaus-Universität Weimar',
     year: '2018 - 2022',
     focus: 'Deep learning, NLP, information retrieval, multilingual zero-shot learning',
+    detail:
+      'Master thesis on privacy-preserving clinical NLP with a semi-supervised VAE framework for controlled synthetic medical record generation, de-identification, classification, and data augmentation in scarce healthcare datasets.',
+    links: [
+      {
+        label: 'Master thesis',
+        href: 'https://downloads-cf.webis.de/theses/papers/laverde-alfonso_2022.pdf',
+      },
+    ],
   },
   {
     degree: 'BSc, Electronic Engineering',
-    institution: 'Pontifical Xavierian University, Bogota',
+    institution: 'Pontifical Xavierian University, Bogotá',
     year: '2009 - 2017',
     focus: 'Systems control, digital signal processing, computing fundamentals',
+    detail:
+      "Bachelor's thesis implementing Shor's quantum algorithm to break RSA encryption and comparing quantum cryptography protocols for sharing a secret key between remote parties using cloud-based quantum simulation tools, including IBM Quantum Experience.",
+    links: [
+      {
+        label: 'Thesis abstract',
+        href: 'https://www.linkedin.com/in/sebastian-laverde-alfonso/overlay/Education/392574812/treasury/?profileId=ACoAACFlqbUBydU-vnMrzaFbGcLTnbkTBTfoMo0',
+      },
+    ],
   },
 ]

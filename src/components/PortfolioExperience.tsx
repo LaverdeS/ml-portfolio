@@ -16,7 +16,9 @@ import {
   Database,
   Download,
   ExternalLink,
+  FileText,
   Globe2,
+  Info,
   Layers,
   Mail,
   MapPin,
@@ -105,12 +107,22 @@ const sectionNodes: SectionNode[] = [
   },
 ]
 
-const subtitles = ['LLM Systems', 'Agentic AI', 'Automation']
+const subtitles = [
+  'AI & Data',
+  'LLM Systems',
+  'Agentic AI',
+  'Automation',
+  'Context Engineering',
+  'Fullstack AI',
+  'Applied AI',
+  'Advanced RAG',
+  'Document Intelligence',
+]
 
 const aboutParagraphs = [
-  'I design and build data, AI, and automation systems that turn complex problems into measurable outcomes.',
-  'With a background in ML engineering and business intelligence, I bridge the gap between data and decisions.',
-  'Recent work includes agentic AI, advanced RAG, LLM infrastructure, document intelligence, and production cloud systems.',
+  'I design and ship agentic AI, LLM infrastructure, and document intelligence systems that turn complex workflows into reliable production software.',
+  'My work spans the full AI lifecycle: applied research, model fine-tuning, evaluation, retrieval, orchestration, deployment, and observability.',
+  'Most recently, I owned multi-agent SaaS architecture on GCP, combining advanced RAG, tool-calling agents, tenant isolation, and production tracing.',
 ]
 
 const techHighlights = [
@@ -128,15 +140,15 @@ const techHighlights = [
 const profilePillars = [
   {
     label: 'Deep Focus',
-    text: 'Agentic systems, advanced RAG, LLM infrastructure, and document intelligence.',
+    text: 'Agentic systems, advanced RAG, LLM infrastructure, and multimodal document intelligence.',
   },
   {
     label: 'Production Range',
-    text: 'Evaluation, deployment, observability, cloud services, and BI automation.',
+    text: 'Evaluation, deployment, observability, cloud services, and resilient multi-agent backends.',
   },
   {
     label: 'Target Roles',
-    text: 'Senior ML Engineer, Fullstack AI Engineer, Agentic Systems Lead, LLM Platform Engineer.',
+    text: 'Mid-senior / Senior ML Engineer, Fullstack AI Engineer, Agentic Systems Engineer, LLM Platform Engineer.',
   },
 ]
 
@@ -154,6 +166,21 @@ const languages = [
     level: 'Limited working proficiency (B1+)',
   },
 ]
+
+const referenceLinks: Partial<Record<string, { label: string; href: string }>> = {
+  unstructured: {
+    label: 'Unstructured',
+    href: 'https://www.linkedin.com/in/sebastian-laverde-alfonso/overlay/Position/2065371619/treasury/?profileId=ACoAACFlqbUBydU-vnMrzaFbGcLTnbkTBTfoMo0',
+  },
+  webis: {
+    label: 'Webis',
+    href: 'https://www.linkedin.com/in/sebastian-laverde-alfonso/overlay/Position/1863646170/treasury/?profileId=ACoAACFlqbUBydU-vnMrzaFbGcLTnbkTBTfoMo0',
+  },
+  dlr: {
+    label: 'DLR',
+    href: 'https://www.linkedin.com/in/sebastian-laverde-alfonso/overlay/Position/1710144424/treasury/?profileId=ACoAACFlqbUBydU-vnMrzaFbGcLTnbkTBTfoMo0',
+  },
+}
 
 const topStrengths = [
   'Agentic Architecture',
@@ -256,6 +283,7 @@ const SOUND_MUTED_KEY = 'ml-portfolio-sound-muted'
 export default function PortfolioExperience() {
   const [activeSection, setActiveSection] = useState<ViewId>('home')
   const [subtitleIndex, setSubtitleIndex] = useState(0)
+  const [subtitleText, setSubtitleText] = useState('')
   const [soundMuted, setSoundMuted] = useState(() => {
     if (typeof window === 'undefined') {
       return false
@@ -271,12 +299,36 @@ export default function PortfolioExperience() {
   )
 
   useEffect(() => {
-    const interval = window.setInterval(() => {
-      setSubtitleIndex(index => (index + 1) % subtitles.length)
-    }, 2600)
+    const currentSubtitle = subtitles[subtitleIndex]
+    let frame = 0
+    let typingTimeout: number | undefined
+    let nextSubtitleTimeout: number | undefined
 
-    return () => window.clearInterval(interval)
-  }, [])
+    function typeNextFrame() {
+      setSubtitleText(currentSubtitle.slice(0, frame))
+
+      if (frame >= currentSubtitle.length) {
+        nextSubtitleTimeout = window.setTimeout(() => {
+          setSubtitleIndex(index => (index + 1) % subtitles.length)
+        }, 1150)
+        return
+      }
+
+      frame += 1
+      typingTimeout = window.setTimeout(typeNextFrame, frame === 1 ? 0 : 54)
+    }
+
+    typingTimeout = window.setTimeout(typeNextFrame, 0)
+
+    return () => {
+      if (typingTimeout) {
+        window.clearTimeout(typingTimeout)
+      }
+      if (nextSubtitleTimeout) {
+        window.clearTimeout(nextSubtitleTimeout)
+      }
+    }
+  }, [subtitleIndex])
 
   useEffect(() => {
     hoverAudioRef.current = new Audio('/sounds/ui-hover-light.mp3')
@@ -381,7 +433,7 @@ export default function PortfolioExperience() {
         {activeSection === 'home' ? (
           <HomeView
             key="home"
-            subtitle={subtitles[subtitleIndex]}
+            subtitle={subtitleText}
             onSelect={handleSelect}
             onHoverSound={playHoverSound}
           />
@@ -509,11 +561,12 @@ function HomeView({
             initial={false}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.28, duration: 0.45 }}
-            className="home-hero-subtitle mt-5 flex min-h-7 flex-wrap items-center justify-center gap-2 font-mono text-[11px] uppercase tracking-[0.2em] text-text sm:text-sm sm:tracking-[0.24em]"
+            className="home-hero-subtitle mt-5 flex min-h-7 items-center justify-center font-mono text-[11px] uppercase tracking-[0.2em] text-accent sm:text-sm sm:tracking-[0.24em]"
           >
-            <span>AI & Data</span>
-            <span className="text-accent">.</span>
-            <span>{subtitle}</span>
+            <span className="inline-flex items-center">
+              <span>{subtitle}</span>
+              <span className="ml-1 inline-block h-5 w-px bg-accent animate-blink" />
+            </span>
           </motion.div>
 
           <motion.p
@@ -523,7 +576,6 @@ function HomeView({
             className="home-hero-copy mt-5 w-full max-w-[34rem] border border-border/70 bg-surface/35 px-4 py-3 font-mono text-[10px] leading-6 text-muted shadow-[0_0_38px_rgba(0,212,255,0.05)] backdrop-blur sm:px-6 sm:text-[11px]"
           >
             Building intelligent systems at the intersection of data, models, and real-world impact.
-            <span className="ml-1 inline-block h-4 w-px translate-y-1 bg-accent animate-blink" />
           </motion.p>
 
           <motion.div
@@ -670,6 +722,7 @@ function SectionShell({
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -14 }}
                     transition={{ duration: 0.35, ease: panelEase }}
+                    className={cn(activeSection === 'projects' && 'pt-2')}
                   >
                     {activeSection === 'about' && <AboutPanel />}
                     {activeSection === 'experience' && <ExperiencePanel />}
@@ -695,6 +748,7 @@ function SectionHeading({ section }: { section: SectionNode }) {
     <div
       className={cn(
         'mb-9 flex items-start gap-4 sm:mb-11',
+        section.id === 'projects' && 'mb-14 sm:mb-16',
         section.id === 'contact' && 'mx-auto w-full max-w-[860px] justify-center text-center',
       )}
     >
@@ -900,6 +954,7 @@ function ExperiencePanel() {
         {experience.map((item, index) => {
           const isOpen = openId === item.id
           const contentId = `experience-panel-${item.id}`
+          const reference = referenceLinks[item.id]
 
           return (
             <article
@@ -940,7 +995,8 @@ function ExperiencePanel() {
                   <div className="flex shrink-0 items-start justify-between gap-6 lg:block lg:text-right">
                     <div className="font-mono text-[10px] uppercase leading-5 tracking-[0.16em] text-muted">
                       <div>{item.location}</div>
-                      <div className="mt-2 flex flex-wrap gap-2 lg:max-w-[220px] lg:justify-end">
+                      <div className="text-text/60">{item.companyLocation}</div>
+                      <div className="mt-2 flex flex-wrap gap-2 lg:ml-auto lg:w-[220px] lg:justify-end">
                         {item.tags.slice(0, 4).map(tag => (
                           <SignalTag key={tag}>{tag}</SignalTag>
                         ))}
@@ -971,6 +1027,19 @@ function ExperiencePanel() {
                       <p className="max-w-4xl font-sans text-sm leading-7 text-muted">
                         {item.context}
                       </p>
+
+                      {reference && (
+                        <a
+                          href={reference.href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-5 inline-flex h-8 items-center gap-2 rounded-sm border border-accent/40 bg-accent/10 px-3 font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-accent transition hover:bg-accent hover:text-bg"
+                        >
+                          <FileText size={13} />
+                          Reference letter: {reference.label}
+                          <ExternalLink size={12} />
+                        </a>
+                      )}
 
                       <div className="experience-bullets mt-6 grid gap-4 md:grid-cols-2">
                         {item.bullets.map(bullet => (
@@ -1033,8 +1102,8 @@ function ProjectsPanel() {
   const visibleProjects = showAll ? projects : projects.slice(0, 4)
 
   return (
-    <div className="space-y-7">
-      <div className="grid gap-5 md:grid-cols-2">
+    <div className="projects-panel">
+      <div className="mt-4 grid gap-5 md:grid-cols-2">
         {visibleProjects.map((project, index) => {
           const ProjectIcon = projectIcons[index % projectIcons.length]
 
@@ -1100,7 +1169,7 @@ function ProjectsPanel() {
         })}
       </div>
 
-      <div className="flex justify-center">
+      <div className="mt-16 flex justify-center">
         <button
           type="button"
           onClick={() => setShowAll(value => !value)}
@@ -1129,25 +1198,6 @@ function SkillsPanel() {
         </p>
       </div>
 
-      <div className="skill-score-model mx-auto w-full max-w-[980px] rounded-sm border border-border/70 bg-surface/35 p-6">
-        <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-accent">
-          Score model
-        </p>
-        <p className="mt-4 max-w-4xl font-sans text-sm leading-7 text-muted">
-          Scores indicate demonstrated depth from the CV: production ownership, repeated hands-on delivery,
-          and evidence across research or shipped systems. Higher scores reflect the strongest, most current
-          proof points.
-        </p>
-        <div className="mt-6 grid gap-4 lg:grid-cols-3">
-          {skillScoreLegend.map(item => (
-            <div key={item.range} className="border-l border-accent/35 pl-4">
-              <span className="font-mono text-sm font-semibold text-accent">{item.range}</span>
-              <p className="mt-2 font-sans text-sm leading-6 text-muted">{item.meaning}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-
       <div className="skill-dashboard-grid mx-auto grid w-full max-w-[980px] gap-4 md:grid-cols-2">
         {skillDashboard.map(column => (
           <article key={column.label} className="skill-card overflow-hidden rounded-sm border border-border/70 p-0">
@@ -1163,11 +1213,11 @@ function SkillsPanel() {
                   <column.Icon size={17} />
                 </span>
                 <span>
-                  <span className="block font-mono text-xs font-semibold uppercase tracking-[0.2em] text-accent">
+                  <span className="block font-mono text-sm font-semibold uppercase tracking-[0.18em] text-accent">
                     {column.label}
                   </span>
-                  <span className="mt-1 block font-sans text-sm text-muted">
-                    {column.skills.length} validated capabilities
+                  <span className="mt-1 block font-sans text-[15px] text-muted">
+                    {column.skills.length} capabilities
                   </span>
                   {openSkillCategory !== column.label && (
                     <span className="mt-3 flex flex-wrap gap-2">
@@ -1184,7 +1234,7 @@ function SkillsPanel() {
                 </span>
               </span>
               <ChevronDown
-                size={18}
+                size={22}
                 className={cn(
                   'shrink-0 text-accent transition group-hover:translate-y-0.5',
                   openSkillCategory === column.label && 'rotate-180',
@@ -1225,6 +1275,28 @@ function SkillsPanel() {
         ))}
       </div>
 
+      <div className="skill-score-model mx-auto w-full max-w-[980px] rounded-sm border border-border/70 bg-surface/35 p-6">
+        <div className="flex items-center gap-2">
+          <Info size={15} className="text-accent" />
+          <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-accent">
+            Score model
+          </p>
+        </div>
+        <p className="mt-4 max-w-4xl font-sans text-sm leading-7 text-muted">
+          Scores indicate demonstrated depth from the CV: production ownership, repeated hands-on delivery,
+          and evidence across research or shipped systems. Higher scores reflect the strongest, most current
+          proof points.
+        </p>
+        <div className="mt-6 grid gap-4 lg:grid-cols-3">
+          {skillScoreLegend.map(item => (
+            <div key={item.range} className="border-l border-accent/35 pl-4">
+              <span className="font-mono text-sm font-semibold text-accent">{item.range}</span>
+              <p className="mt-2 font-sans text-sm leading-6 text-muted">{item.meaning}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
       <div className="skills-core">
         <p className="mb-5 font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-accent">
           Core strengths
@@ -1263,18 +1335,51 @@ function AcademicsPanel() {
                 </div>
                 <p className="mt-3 font-sans text-base leading-7 text-text/85">{item.institution}</p>
                 <p className="mt-3 font-sans text-sm leading-7 text-muted">{item.focus}</p>
+                {item.detail && (
+                  <p className="mt-4 font-sans text-sm leading-7 text-muted">{item.detail}</p>
+                )}
+                {item.links && item.links.length > 0 && (
+                  <div className="mt-4 flex flex-wrap gap-3">
+                    {item.links.map(link => (
+                      <a
+                        key={link.href}
+                        href={link.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex h-8 items-center gap-2 rounded-sm border border-accent/40 bg-accent/10 px-3 font-mono text-[10px] uppercase tracking-[0.16em] text-accent transition hover:bg-accent hover:text-bg"
+                      >
+                        {link.label}
+                        <ExternalLink size={12} />
+                      </a>
+                    ))}
+                  </div>
+                )}
               </div>
             ))}
           </div>
         </div>
 
-        <div className="rounded-sm border border-border/70 bg-bg/35 p-7">
+        <div className="academic-community-card rounded-sm border border-border/70 bg-bg/35 p-7">
           <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-accent">
             Community learning
           </p>
           <div className="mt-5 grid gap-5 font-sans text-sm leading-7 text-muted sm:grid-cols-2">
             <p>Mentored the Python4AI webinar series as part of the Renewable Africa academy program.</p>
             <p>Participated as ML Engineer in three AI-for-good projects delivering working prototypes for social challenges.</p>
+          </div>
+          <div className="mt-6 border-t border-border/70 pt-5">
+            <p className="font-sans text-sm leading-7 text-muted">
+              Additional licenses and certifications are listed on LinkedIn.
+            </p>
+            <a
+              href={meta.linkedin}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-4 inline-flex h-8 items-center gap-2 rounded-sm border border-accent/40 bg-accent/10 px-3 font-mono text-[10px] uppercase tracking-[0.16em] text-accent transition hover:bg-accent hover:text-bg"
+            >
+              View LinkedIn
+              <ExternalLink size={12} />
+            </a>
           </div>
         </div>
       </div>
@@ -1307,7 +1412,7 @@ function AcademicsPanel() {
                     rel="noopener noreferrer"
                     className="mt-4 inline-flex h-8 items-center gap-2 rounded-sm border border-accent/40 bg-accent/10 px-3 font-mono text-[10px] uppercase tracking-[0.16em] text-accent transition hover:bg-accent hover:text-bg"
                   >
-                    View Paper
+                    {publication.linkLabel ?? 'View Paper'}
                     <ExternalLink size={12} />
                   </a>
                 )}
@@ -1330,7 +1435,9 @@ function ContactPanel() {
         the channels below.
       </p>
 
-      <div className="contact-lines mx-auto mt-8 grid gap-4 sm:grid-cols-2">
+      <div aria-hidden="true" className="h-5 sm:h-6" />
+
+      <div className="contact-lines mx-auto grid gap-4 sm:grid-cols-2">
         <ContactLine Icon={Mail} label={meta.email} href={`mailto:${meta.email}`} />
         <ContactLine Icon={Phone} label={phoneNumber} href={`tel:${phoneNumber}`} />
         <ContactLine Icon={MapPin} label={meta.location} />
