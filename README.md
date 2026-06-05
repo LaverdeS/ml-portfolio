@@ -2,7 +2,7 @@
 
 A cinematic, command-center style portfolio for Sebastian Laverde Alfonso, focused on machine learning engineering, agentic AI systems, LLM infrastructure, hybrid RAG, document intelligence, and production AI delivery.
 
-Live deployment: [ml-portfolio-swart.vercel.app](https://ml-portfolio-swart.vercel.app/)
+Live deployment: [sebastian-laverde-ml-portfolio.vercel.app](https://sebastian-laverde-ml-portfolio.vercel.app/)
 
 ## Overview
 
@@ -32,20 +32,20 @@ Main sections:
 
 ```text
 ml-portfolio/
-├── public/
-│   └── cv/                         # Public CV document
-├── src/
-│   ├── app/
-│   │   ├── globals.css             # Main visual system and responsive styling
-│   │   ├── layout.tsx              # Metadata, Analytics, Speed Insights
-│   │   └── page.tsx                # Renders the portfolio experience
-│   ├── components/
-│   │   └── PortfolioExperience.tsx # Main single-page portfolio UI
-│   └── data/
-│       └── portfolio.ts            # Portfolio content and structured data
-├── next.config.ts
-├── package.json
-└── README.md
+|-- public/
+|   `-- cv/                         # Public CV document
+|-- src/
+|   |-- app/
+|   |   |-- globals.css             # Main visual system and responsive styling
+|   |   |-- layout.tsx              # Metadata, Analytics, Speed Insights
+|   |   `-- page.tsx                # Renders the portfolio experience
+|   |-- components/
+|   |   `-- PortfolioExperience.tsx # Main single-page portfolio UI
+|   `-- data/
+|       `-- portfolio.ts            # Portfolio content and structured data
+|-- next.config.ts
+|-- package.json
+`-- README.md
 ```
 
 ## Local Development
