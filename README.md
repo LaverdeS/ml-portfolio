@@ -1,85 +1,100 @@
-# Sebastian Laverde — Machine Learning Portfolio
+# Sebastian Laverde - ML Portfolio
 
-A bespoke, high-contrast, production-grade portfolio showcasing 7+ years of machine learning engineering experience, with a focus on **Agentic AI systems**, **LLM infrastructure**, and **Document Intelligence**.
+A cinematic, command-center style portfolio for Sebastian Laverde Alfonso, focused on machine learning engineering, agentic AI systems, LLM infrastructure, hybrid RAG, document intelligence, and production AI delivery.
 
-Live deployment: [ml-portfolio-swart.vercel.app](https://ml-portfolio-swart.vercel.app)
+Live deployment: [ml-portfolio-swart.vercel.app](https://ml-portfolio-swart.vercel.app/)
 
----
+## Overview
 
-## 🎨 Design Aesthetic: "Terminal Precision meets Editorial Luxury"
+This is a Next.js App Router portfolio built as a single rich interactive experience. The current design direction is minimal cyberpunk / enterprise AI command center: dark interface, orbital navigation, crisp cyan accents, structured dashboards, collapsible experience and skill sections, and compact project cards.
 
-This web application deviates from generic "AI portfolio" templates (like standard purple gradients and card-heavy layouts) to project a sense of system-level thinking and design taste:
-- **Palette**: Dark-first near-black background (`#080b0f`) accented with high-contrast electric cyan (`#00d4ff`) and deep muted violet (`#7c6aff`).
-- **Typography**: Display headings set in *Playfair Display* for editorial elegance; body text set in *IBM Plex Mono* and *IBM Plex Sans* to evoke terminal precision and scientific data streams.
-- **Blueprint Grid**: The hero section uses a subtle background grid to represent structural precision.
-- **Quantified Metrics**: A glowing statistics strip highlights core professional metrics.
-- **Stateful Timeline**: Career experience features expandable bullets, prioritizing legibility and interactive discovery.
+Main sections:
 
----
+- About
+- Experience
+- Projects
+- Skills
+- Academics
+- Contact
 
-## 🛠️ Technology Stack
+## Tech Stack
 
-- **Core Framework**: [Next.js 15 (App Router)](https://nextjs.org/)
-- **Styling**: [Tailwind CSS v4](https://tailwindcss.com/)
-- **Animations**: [Framer Motion](https://www.framer.com/motion/)
-- **Icons**: [Lucide React](https://lucide.dev/)
-- **Deployment**: [Vercel](https://vercel.com/) (Static Export / Zero Server Functions)
+- [Next.js](https://nextjs.org/) App Router
+- React 19
+- Tailwind CSS v4
+- Framer Motion
+- Lucide React
+- Vercel Analytics
+- Vercel Speed Insights
+- Vercel deployment
 
----
+## Project Structure
 
-## 🚀 Local Development
+```text
+ml-portfolio/
+├── public/
+│   └── cv/                         # Public CV document
+├── src/
+│   ├── app/
+│   │   ├── globals.css             # Main visual system and responsive styling
+│   │   ├── layout.tsx              # Metadata, Analytics, Speed Insights
+│   │   └── page.tsx                # Renders the portfolio experience
+│   ├── components/
+│   │   └── PortfolioExperience.tsx # Main single-page portfolio UI
+│   └── data/
+│       └── portfolio.ts            # Portfolio content and structured data
+├── next.config.ts
+├── package.json
+└── README.md
+```
 
-### 1. Install Dependencies
+## Local Development
+
+Install dependencies:
+
 ```bash
 npm install
 ```
 
-### 2. Run the Development Server
+Run the development server:
+
 ```bash
 npm run dev
 ```
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 
-### 3. Build & Static Export
-To compile the static pages and export them into the `out/` directory:
+Open [http://localhost:3000](http://localhost:3000).
+
+## Quality Checks
+
+Run lint:
+
+```bash
+npm run lint
+```
+
+Run a production build:
+
 ```bash
 npm run build
 ```
-Verify the static export locally:
+
+Start the production build locally:
+
 ```bash
-npx serve out
+npm run start
 ```
 
----
+## Deployment
 
-## 📁 File Structure
+The app is deployed on Vercel from the connected GitHub repository. Pushing to `main` triggers a new Vercel deployment.
 
-```
-ml-portfolio/
-├── public/                 # Static assets (including CV document & robots.txt)
-├── src/
-│   ├── app/
-│   │   ├── globals.css     # Global styles & Tailwind v4 theme definitions
-│   │   ├── layout.tsx      # App wrapper with SEO metadata
-│   │   └── page.tsx        # Single-page assembly
-│   ├── components/
-│   │   ├── Nav.tsx         # Sidebar/mobile navigation component
-│   │   ├── ui/
-│   │   │   ├── Tag.tsx     # Custom monospace tag/pill component
-│   │   │   └── SectionLabel.tsx
-│   │   └── sections/
-│   │       ├── Hero.tsx
-│   │       ├── Metrics.tsx
-│   │       ├── About.tsx
-│   │       ├── Experience.tsx
-│   │       ├── Projects.tsx
-│   │       ├── Skills.tsx
-│   │       ├── Publications.tsx
-│   │       └── Contact.tsx
-│   ├── data/
-│   │   └── portfolio.ts    # Canonical data layer (no APIs or databases)
-│   └── lib/
-│       └── utils.ts        # CN tailwind-merge helper
-├── next.config.ts          # Next.js configuration (static export configured)
-└── package.json
-```
+Analytics are handled through:
+
+- `@vercel/analytics`
+- `@vercel/speed-insights`
+
+Both components are mounted in `src/app/layout.tsx`.
+
+## Content Notes
+
+Most visible portfolio content lives in `src/data/portfolio.ts`. The main rendered experience is in `src/components/PortfolioExperience.tsx`, with global styling in `src/app/globals.css`.
