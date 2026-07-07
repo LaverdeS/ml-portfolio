@@ -117,6 +117,9 @@ const subtitles = [
   'Applied AI',
   'Advanced RAG',
   'Document Intelligence',
+  'Model Context Protocol (MCP)',
+  'A2A Protocol',
+  'Claude Code Architect',
 ]
 
 const aboutParagraphs = [
@@ -1369,17 +1372,17 @@ function AcademicsPanel() {
           </div>
           <div className="mt-6 border-t border-border/70 pt-5">
             <p className="font-sans text-sm leading-7 text-muted">
-              Additional licenses and certifications are listed on LinkedIn.
+              Additional licenses and certifications are listed on LinkedIn. Among the latest: advanced topics in Anthropic's Model Context Protocol (<strong>MCP</strong>) and <strong>Claude Code Architecture</strong>.{' '}
+              <a
+                href={meta.linkedin}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-accent transition hover:underline"
+              >
+                View LinkedIn
+                <ExternalLink size={11} className="inline" />
+              </a>
             </p>
-            <a
-              href={meta.linkedin}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-4 inline-flex h-8 items-center gap-2 rounded-sm border border-accent/40 bg-accent/10 px-3 font-mono text-[10px] uppercase tracking-[0.16em] text-accent transition hover:bg-accent hover:text-bg"
-            >
-              View LinkedIn
-              <ExternalLink size={12} />
-            </a>
           </div>
         </div>
       </div>
