@@ -31,7 +31,7 @@ export const meta = {
   linkedin: 'https://linkedin.com/in/sebastian-laverde-alfonso',
   github: 'https://github.com/LaverdeS',
   huggingface: 'https://huggingface.co/laverdes',
-  cvPath: '/cv/CV_Sebastian_Laverde_2026_ATS_v2.docx',
+  cvPath: '/cv/CV_Sebastian_Laverde_2026.pdf',
   summary:
     'Machine Learning Engineer with 7+ years of progressive experience across the full AI lifecycle - from research and fine-tuning through production deployment, observability, and scale. Built and shipped deep learning systems for document intelligence, vision-language understanding, NLP, and multimodal AI; recent focus on agentic AI architectures and LLM infrastructure. Sole architect and technical owner of a complete multi-agent SaaS platform at Sapience AI Corporation, deploying 4 production agents, a custom A2A orchestration protocol, and hybrid RAG on Google Cloud.',
 }
